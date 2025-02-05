@@ -2,24 +2,26 @@ import { Scene } from 'phaser';
 import { EventBus } from '../EventBus';
 
 interface LoginResponse {
-  success: boolean;
-  data?: {
-    userId: number;
-    username: string;
-    lastLoginTime: string;
-  };
-  error?: string;
+    success: boolean;
+    data?: {
+        userId: number;
+        username: string;
+        lastLoginTime: string;
+    };
+    error?: string;
 }
 
 export class loginScene extends Scene {
     private loginText: Phaser.GameObjects.Text;
+    private connectButtonContainer: Phaser.GameObjects.DOMElement;
+
     constructor() {
         super('login');
     }
 
     preload() {
         // 如果有按钮图像，可以在这里加载
-        // this.load.image('loginButton', 'assets/buttons/loginButton.png');
+        this.load.image('loginButton', 'assets/buttons/loginButton.png');
     }
 
     create() {
@@ -31,6 +33,9 @@ export class loginScene extends Scene {
             fontSize: '32px',
             color: '#ffffff'
         }).setOrigin(0.5);
+
+        // 动态创建 ConnectButton 的容器
+        this.connectButtonContainer = this.add.dom(width / 2, height * 0.6).createElement('div');
 
         // 创建按钮背景（使用图形）
         const buttonWidth = 200;
@@ -71,10 +76,10 @@ export class loginScene extends Scene {
 
     handleLogin() {
         // 显示加载状态
-        this.loginText.setText('登录中...', )
+        this.loginText.setText('登录中...',)
 
         // 触发登录请求
-        EventBus.emit('phaser_loginRequest', { userId: Date.now() }); // 使用时间戳作为临时用户ID
+        EventBus.emit('phaser_loginRequest', {});
 
         // 添加加载动画
         this.tweens.add({

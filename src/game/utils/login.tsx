@@ -1,8 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { EventBus } from '../EventBus';
 import { useGet } from '@/hooks/useGet';
+import { WalletModal } from '@/components/WalletModal';
+import { WalletProvider, useCurrentWallet } from '@mysten/dapp-kit';
 
 type TestResponse = {
   success: boolean;
@@ -16,31 +18,40 @@ type TestResponse = {
 
 export function ReactPhaserBridge() {
   const { data: userData, mutate: refreshUserData } = useGet<TestResponse>('/api/test?userId=1');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { currentWallet } = useCurrentWallet();
+
   useEffect(() => {
-    // 监听 Phaser 发出的请求事件
-    const handler = async (payload: { userId: number }) => {
+    const loginHandler = async () => {
       try {
-        // 使用 mutate 来刷新数据，并传入 userId 参数
-        const result = await refreshUserData()
-          // 发送数据回 Phaser
-        EventBus.emit('phaser_loginResponse', {
-          success: true,
-          data: result
-        });
+        setIsModalOpen(true);
       } catch (error) {
-        EventBus.emit('phaser_loginResponse', {
-          success: false,
-          error: error instanceof Error ? error.message : '未知错误'
-        });
+        console.error("打开钱包选择失败:", error);
       }
     };
 
-    EventBus.on('phaser_loginRequest', handler);
+    EventBus.on('phaser_loginRequest', loginHandler);
 
     return () => {
-      EventBus.removeListener('phaser_loginRequest', handler);
+      EventBus.removeListener('phaser_loginRequest', loginHandler);
     };
-  }, [refreshUserData]);
+  }, []);
 
-  return null;
+  const handleGameStart = () => {
+    if (currentWallet) {
+      EventBus.emit('phaser_loginResponse', {
+        success: true,
+        data: {
+          walletName: currentWallet.name,
+          walletAddress: currentWallet.accounts[0]?.address,
+        },
+      });
+    }
+  };
+
+  return (
+    <>
+      {isModalOpen && <WalletModal onClose={() => setIsModalOpen(false)} onGameStart={handleGameStart} />}
+    </>
+  );
 }

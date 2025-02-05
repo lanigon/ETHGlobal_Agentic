@@ -30,18 +30,20 @@ export default class DriftBottleScene extends Phaser.Scene {
 
   create() {
     // 初始化时更新 React 层内容
-    EventBus.emit('scene-switch', this.scene.key, 'Welcome to DriftBottleScene!');
+    // EventBus.emit('scene-switch', this.scene.key, 'Welcome to DriftBottleScene!');
     EventBus.emit('switch-driftbottle-scene');
 
     // 创建背景并设置固定大小
-    const bg = this.creactBG();
-    this.updateHtmlPosition(bg);
+    // const bg = this.creactBG();
+    // this.updateHtmlPosition(bg);
     // 设置相机边界
     this.cameras.main.setBounds(0, 0, this.pageScale.x, this.pageScale.y);
     // 创建返回按钮，固定在屏幕上
-    this.creactBack();
+    // this.creactBack();
 
-    this.createOpenBottleListener();
+    this.closeMailListener();
+
+    // this.createOpenBottleListener();
   }
 
   update(time: number, delta: number) {
@@ -100,6 +102,13 @@ export default class DriftBottleScene extends Phaser.Scene {
 
     this.events.on('shutdown', () => {
         EventBus.removeListener('open-bottle-detail-scene');
+    });
+  }
+
+  private closeMailListener() {
+    EventBus.on('close-mail', () => {
+        this.scene.stop();
+        this.scene.resume('tavernScene');
     });
   }
 

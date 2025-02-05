@@ -43,9 +43,12 @@ export class SceneManager {
       .setScrollFactor(0);
 
     driftBottleBtn.on('pointerdown', () => {
-    this.scene.scene.pause();
-    this.scene.scene.launch('DriftBottleScene');
-    // EventBus.emit('switch-driftbottle-scene');
+      if (!this.scene.scene.isPaused()) {  // Only pause if not already paused
+        this.scene.scene.pause();
+        this.scene.scene.launch('DriftBottleScene');
+        //EventBus.emit('switch-driftbottle-scene');
+
+      }
     });
   }
 
