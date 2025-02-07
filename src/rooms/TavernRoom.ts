@@ -4,7 +4,7 @@ import { StoryService } from "../services/storyServices";
 import { UserService } from "../services/userService";
 import { ReplyService } from "../services/replyService";
 import { ethers } from "ethers";
-import { generateJWT, verifyJWT, recoverAddress } from "../utils/jwtUtils";
+import { generateJWT, recoverETHAddress, verifyJWT, verifySuiSignature } from "../utils/jwtUtils";
 
 class Player extends Schema {
   @type("string")
@@ -133,12 +133,21 @@ export class TavernRoom extends Room<TavernState> {
     }
 
     try {
-      // 验证签名
-      const recoveredAddress = recoverAddress(challenge, signature);
+      // ether 验证签名
+      const recoveredAddress = recoverETHAddress(challenge, signature);
       if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
         throw new Error("Signature verification failed.");
       }
+
+      // sui 验证签名
+      // console.log("challenge:", challenge);
+      // console.log("signature:", signature);
+      // if (await verifySuiSignature(challenge, signature) === false) {
+      //   throw new Error("Signature verification failed.");
+      // }
+
       // 读取用户信息
+      console.log("address:", address)
       const user = await UserService.getUser(address);
       const userState = await UserService.getDailyState(address);
       // 签名验证通过，生成 JWT
@@ -162,6 +171,8 @@ export class TavernRoom extends Room<TavernState> {
     if (!address) return;  // 如果认证失败，函数会返回 null 并已经向客户端发送错误
 
     const { title, storyText } = data;
+    console.log("title:", title);
+    console.log("storyText:", storyText);
 
     try {
       const story = await StoryService.publishUserStory(address, title, storyText);
