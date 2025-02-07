@@ -25,10 +25,10 @@ app_.use(cors());
 app_.use("/api", aiRoutes);
 
 // ✅ 监听 3000 端口
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app_.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
 });
 
 // Create and listen on 2567 (or PORT environment variable.)
-listen(app);
+listen(app, 2568);
