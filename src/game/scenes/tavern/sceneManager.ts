@@ -12,6 +12,7 @@ export class SceneManager {
   public cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   public gridSize!: number;
   public grid!: number[][];
+  public UI: Phaser.GameObjects.Image[] = [];
   
   private scene: Phaser.Scene;
   private obstrucleGroup?: Phaser.Physics.Arcade.StaticGroup;
@@ -36,13 +37,13 @@ export class SceneManager {
   }
 
   private createDriftBottleButton() {
-    const driftBottleBtn = this.scene.add.image(10, 300, 'driftbottle')
+    const driftbottleButton = this.scene.add.image(10, 200, 'driftbottle')
       .setScale(0.5)
       .setInteractive()
       .setOrigin(0)
       .setScrollFactor(0);
 
-    driftBottleBtn.on('pointerdown', () => {
+      driftbottleButton.on('pointerdown', () => {
       if (!this.scene.scene.isPaused()) {  // Only pause if not already paused
         this.scene.scene.pause();
         this.scene.scene.launch('DriftBottleScene');
@@ -50,6 +51,7 @@ export class SceneManager {
 
       }
     });
+    this.UI.push(driftbottleButton);
   }
 
   // 原有的场景管理方法
@@ -70,12 +72,13 @@ export class SceneManager {
   private createObstacles() {
     this.obstrucleGroup = this.scene.physics.add.staticGroup();
     const tableSprite = this.obstrucleGroup.create(
-      8 * this.gridSize, 
       13 * this.gridSize, 
+      8 * this.gridSize, 
       'logo'
     ) as Phaser.Physics.Arcade.Sprite;
 
     for (const obstacle of staticObstacles) {
+        // debugger;
       for (let y = obstacle.starty; y <= obstacle.endy; y++) {
         for (let x = obstacle.startx; x <= obstacle.endx; x++) {
           this.grid[y][x] = 1;
@@ -88,12 +91,12 @@ export class SceneManager {
 
   private createCharacters() {
     // 创建玩家
-    this.player = new Player(this.scene, 5*this.gridSize, 10*this.gridSize, 'player');
+    this.player = new Player(this.scene, 2*this.gridSize, 10*this.gridSize, 'player');
     this.cursors = this.scene.input.keyboard!.createCursorKeys();
     this.scene.physics.add.collider(this.player.sprite, this.obstrucleGroup!);
 
     // 创建酒保
-    this.barman = new Barman(this.scene, 9*this.gridSize, 9*this.gridSize, 'barman');
+    this.barman = new Barman(this.scene, 5*this.gridSize, 4*this.gridSize, 'barman');
     this.barman.sprite.setInteractive();
   }
 
@@ -121,8 +124,15 @@ export class SceneManager {
     if (tx < 0 || tx >= this.grid[0].length || ty < 0 || ty >= this.grid.length) {
       return;
     }
-    if (this.grid[tx][ty] === 1) {
+    if (this.grid[ty][tx] === 1) {
       return;
+    }
+    // if (this.grid[tx][ty] === 1) {
+    //   return;
+    // }
+    // click on UI, stop moving
+    if (this.UI.some(ui => ui.getBounds().contains(pointer.x, pointer.y))) {
+        return;
     }
     const px = Math.floor(this.player.sprite.x / this.gridSize);
     const py = Math.floor(this.player.sprite.y / this.gridSize);
@@ -136,8 +146,10 @@ export class SceneManager {
     moveController?.startPath(result);
   }
   private drawGrid() {
-    const bgWidth = 550;
-    const bgHeight = 1195;
+    const bgWidth = 1195;
+    const bgHeight = 550;
+    // const bgWidth = 550;
+    // const bgHeight = 1195;
     // 添加网格显示
     const graphics = this.scene.add.graphics();
     

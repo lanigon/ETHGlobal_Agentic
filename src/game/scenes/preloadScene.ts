@@ -12,8 +12,8 @@ export class preloadScene extends Scene {
   }
 
   init() {
-    const width = Math.min(window.innerWidth, 550);
-    const height = Math.min(window.innerHeight, 1195);
+    const width = Math.min(window.innerWidth, 1195);
+    const height = Math.min(window.innerHeight, 550);
 
     // 添加加载文本
     this.loadingText = this.add.text(width/2, height * 0.5, '加载中...', {
@@ -93,8 +93,10 @@ export class preloadScene extends Scene {
 
   preload() {
     // 添加加载动画
-    const width = Math.min(window.innerWidth, 550);
-    const height = Math.min(window.innerHeight, 1195);
+    // const width = Math.min(window.innerWidth, 550);
+    // const height = Math.min(window.innerHeight, 1195);
+    const width = Math.min(window.innerWidth, 1195);
+    const height = Math.min(window.innerHeight, 550);
     
     const loadingSpinner = this.add.circle(width/2, height * 0.4, 20, 0x00ff00);
     this.tweens.add({
@@ -106,7 +108,8 @@ export class preloadScene extends Scene {
     });
 
     // 资源加载
-    this.load.image('tavern_bg', 'img/newbar.png');
+    // this.load.image('tavern_bg', 'img/newbar.png');
+    this.load.image('tavern_bg', 'img/backgroundHorizontal.jpg');
     this.load.image('logo', 'img/bit.png');
     this.load.image('star', 'img/bit.png');
     this.load.image('back', 'img/back.png');
@@ -127,9 +130,10 @@ export class preloadScene extends Scene {
     this.load.image('wizball', 'img/wizball.png');
 
     this.registry.set('gridSize', 50);
-    const gridArray = new Array(24)
+    // debugger;
+    const gridArray = new Array(11)
       .fill(null)
-      .map(() => new Array(11).fill(0));
+      .map(() => new Array(24).fill(0));
 
     this.registry.set('grid', gridArray);
   }

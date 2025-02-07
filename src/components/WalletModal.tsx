@@ -1,24 +1,39 @@
 import React, { useState } from "react";
-import {
-    useConnectWallet,
-    useWallets,
-    useCurrentWallet,
-    useDisconnectWallet,
-} from "@mysten/dapp-kit";
+import { ethers } from "ethers";
 
 // 定义 Props 类型
 interface WalletModalProps {
     onClose: () => void;
-    onGameStart: () => void;
+    onGameStart: (address: string) => void;
 }
 
 export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
-    // 钱包列表
-    const wallets = useWallets();
-    const { mutate: connect } = useConnectWallet();
-    const { mutate: disconnect } = useDisconnectWallet();
-    const { currentWallet } = useCurrentWallet();
+    const [ethAddress, setEthAddress] = useState<string | null>(null);
     const [error, setError] = useState<string>("");
+
+    // 连接 MetaMask
+    const handleConnectMetaMask = async () => {
+        if (!window.ethereum) {
+            setError("❌ 请安装 MetaMask！");
+            return;
+        }
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const address = await signer.getAddress();
+            setEthAddress(address);
+            console.log("✅ MetaMask 已连接，地址:", address);
+        } catch (err) {
+            setError("❌ 连接 MetaMask 失败！");
+            console.error(err);
+        }
+    };
+
+    // 断开连接
+    const handleDisconnect = () => {
+        setEthAddress(null);
+        console.log("❌ MetaMask 已断开连接");
+    };
 
     return (
         <div
@@ -59,108 +74,67 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                     🔮 选择钱包
                 </h2>
 
-                {/* 钱包列表 */}
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                    {wallets.length > 0 ? (
-                        wallets.map((wallet) => {
-                            const isConnected = currentWallet && currentWallet.name === wallet.name;
+                {/* 连接 MetaMask */}
+                <button
+                    onClick={handleConnectMetaMask}
+                    style={{
+                        width: "100%",
+                        padding: "12px",
+                        border: ethAddress ? "2px solid #0f0" : "2px solid #ff0090",
+                        backgroundColor: ethAddress ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 0, 144, 0.2)",
+                        color: ethAddress ? "#0f0" : "#ff0090",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        borderRadius: "8px",
+                        textShadow: ethAddress ? "0 0 5px #0f0" : "0 0 5px #ff0090",
+                        transition: "all 0.3s ease",
+                        marginBottom: "10px",
+                    }}
+                >
+                    {ethAddress ? `✅ 已连接 ${ethAddress.slice(0, 6)}...` : "连接 MetaMask"}
+                </button>
 
-                            return (
-                                <li key={wallet.name} style={{ marginBottom: "10px" }}>
-                                    <button
-                                        onClick={() => {
-                                            if (isConnected) {
-                                                disconnect();
-                                                return;
-                                            }
-                                            if (!wallet?.name) {
-                                                setError("未找到可用的钱包，请安装 Sui Wallet");
-                                                return;
-                                            }
-                                            connect(
-                                                { wallet }, // 💡 确保 wallet 传递正确的类型
-                                                {
-                                                    onSuccess: () => console.log(`✅ 连接成功: ${wallet.name}`),
-                                                    onError: (err: Error) => setError(err.message),
-                                                }
-                                            );
-                                        }}
-                                        style={{
-                                            width: "100%",
-                                            padding: "10px",
-                                            border: isConnected ? "2px solid #0f0" : "2px solid #ff0090",
-                                            backgroundColor: isConnected ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 0, 144, 0.2)",
-                                            color: isConnected ? "#0f0" : "#ff0090",
-                                            fontSize: "14px",
-                                            fontWeight: "bold",
-                                            cursor: "pointer",
-                                            borderRadius: "5px",
-                                            textShadow: isConnected ? "0 0 5px #0f0" : "0 0 5px #ff0090",
-                                            transition: "all 0.3s ease",
-                                        }}
-                                    >
-                                        {isConnected
-                                            ? `✅ ${currentWallet?.accounts?.[0]?.address.slice(0, 6)}...`
-                                            : `连接 ${wallet.name}`}
-                                    </button>
-
-                                    {/* 断开连接按钮 */}
-                                    {isConnected && (
-                                        <button
-                                            onClick={() => disconnect()}
-                                            style={{
-                                                marginTop: "5px",
-                                                width: "100%",
-                                                padding: "8px",
-                                                border: "2px solid #ff4500",
-                                                backgroundColor: "rgba(255, 69, 0, 0.2)",
-                                                color: "#ff4500",
-                                                fontSize: "14px",
-                                                fontWeight: "bold",
-                                                cursor: "pointer",
-                                                borderRadius: "5px",
-                                                textShadow: "0 0 5px #ff4500",
-                                                transition: "all 0.3s ease",
-                                            }}
-                                        >
-                                            ❌ 断开连接
-                                        </button>
-                                    )}
-                                </li>
-                            );
-                        })
-                    ) : (
-                        <p
-                            style={{
-                                color: "#ff0090",
-                                fontSize: "14px",
-                                marginTop: "10px",
-                                textShadow: "0 0 5px #ff0090",
-                            }}
-                        >
-                            ❌ 未检测到可用钱包，请安装 Sui Wallet
-                        </p>
-                    )}
-                </ul>
+                {/* 断开连接按钮 */}
+                {ethAddress && (
+                    <button
+                        onClick={handleDisconnect}
+                        style={{
+                            width: "100%",
+                            padding: "8px",
+                            border: "2px solid #ff4500",
+                            backgroundColor: "rgba(255, 69, 0, 0.2)",
+                            color: "#ff4500",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            borderRadius: "5px",
+                            textShadow: "0 0 5px #ff4500",
+                            transition: "all 0.3s ease",
+                        }}
+                    >
+                        ❌ 断开连接
+                    </button>
+                )}
 
                 {/* 进入游戏按钮 */}
                 <button
                     onClick={() => {
-                        if (currentWallet) {
-                            onGameStart(); // ✅ 触发外部的游戏启动事件
-                            onClose(); // 关闭弹窗
+                        if (ethAddress) {
+                            onGameStart(ethAddress);
+                            onClose();
                         }
                     }}
-                    disabled={!currentWallet}
+                    disabled={!ethAddress}
                     style={{
                         marginTop: "20px",
                         width: "100%",
                         padding: "12px",
-                        backgroundColor: currentWallet ? "rgba(0, 255, 255, 0.5)" : "rgba(128, 128, 128, 0.5)",
-                        color: currentWallet ? "#0ff" : "#888",
+                        backgroundColor: ethAddress ? "rgba(0, 255, 255, 0.5)" : "rgba(128, 128, 128, 0.5)",
+                        color: ethAddress ? "#0ff" : "#888",
                         border: "2px solid #0ff",
                         borderRadius: "5px",
-                        cursor: currentWallet ? "pointer" : "not-allowed",
+                        cursor: ethAddress ? "pointer" : "not-allowed",
                         fontSize: "16px",
                         fontWeight: "bold",
                         textShadow: "0 0 8px #0ff",
@@ -169,6 +143,20 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                 >
                     🎮 进入游戏
                 </button>
+
+                {/* 错误信息 */}
+                {error && (
+                    <p
+                        style={{
+                            color: "red",
+                            fontSize: "14px",
+                            marginTop: "10px",
+                            textShadow: "0 0 5px red",
+                        }}
+                    >
+                        ⚠️ {error}
+                    </p>
+                )}
             </div>
         </div>
     );

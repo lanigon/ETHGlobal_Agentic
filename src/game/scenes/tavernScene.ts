@@ -17,8 +17,10 @@ export default class TavernScene extends Phaser.Scene {
 
   create() {
     // 设置场景尺寸数据
-    this.data.set('bgWidth', 550);
-    this.data.set('bgHeight', 1195);
+    // this.data.set('bgWidth', 550);
+    // this.data.set('bgHeight', 1195);
+    this.data.set('bgWidth', 1195);
+    this.data.set('bgHeight', 550);
 
     // 初始化场景管理器
     this.sceneManager = new SceneManager(this);
@@ -33,7 +35,7 @@ export default class TavernScene extends Phaser.Scene {
       this, 
       this.sceneManager.player, 
       this.sceneManager.grid, 
-      this.sceneManager.gridSize
+      this.sceneManager.gridSize,
     );
 
     this.barmanInteraction = new BarmanInteraction(

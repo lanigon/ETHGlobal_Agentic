@@ -2,402 +2,273 @@
 
 import * as React from "react"
 import { useEffect, useState } from 'react';
-import { 
-  Search,
-  ArrowLeft,
-  ArrowRight,
-  RotateCcw,
-  MoreVertical,
-  X
-} from "lucide-react"
+import { Search, X, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EventBus } from '@/game/EventBus';
-
-interface Mail {
-  id: string
-  name: string
-  subject: string
-  message: string
-  date: string
-  read: boolean
-  labels: string[]
-  thread?: Mail[] // Array of related emails
-}
-
-const mails: Mail[] = [
-  {
-    id: "1",
-    name: "William Smith",
-    subject: "Meeting Tomorrow",
-    message: "Hi, let's have a meeting tomorrow to discuss the project. I've been reviewing the project details and have some ideas I'd like to share. It's crucial that we align on the next steps and timeline. I've also prepared some preliminary mockups that I think will help guide our discussion.\n\nI've noticed a few areas where we could potentially optimize our approach, and I'd love to get your thoughts on these. The main points I'd like to cover are:\n\n1. Current project status\n2. Resource allocation\n3. Timeline adjustments\n4. Risk assessment\n\nPlease let me know if you'd like to add any other topics to the agenda.",
-    date: "over 1 year ago",
-    read: false,
-    labels: ["meeting", "work", "important"],
-    thread: [
-      {
-        id: "1-1",
-        name: "You",
-        subject: "Re: Meeting Tomorrow",
-        message: "Sure, that works for me. What time were you thinking? I have a few items I'd like to add to the agenda as well:\n\n- Budget considerations for Q4\n- Team capacity planning\n- Upcoming milestones\n\nI've also been working on some projections that might be relevant to our discussion. Should I prepare a brief presentation with these details?",
-        date: "over 1 year ago",
-        read: true,
-        labels: ["meeting"]
-      },
-      {
-        id: "1-2",
-        name: "William Smith",
-        subject: "Re: Meeting Tomorrow",
-        message: "How about 10 AM? We can use the main conference room. Those additional agenda items look good. Yes, please prepare the presentation – it would be very helpful to have those projections handy.\n\nI'll make sure to book the room for 2 hours so we have enough time to cover everything thoroughly. I'll also invite Sarah from the design team as some of the discussion points might need her input.\n\nBefore the meeting, could you please review the latest requirements document I shared last week? There are a few updates that might impact our planning.",
-        date: "over 1 year ago",
-        read: true,
-        labels: ["meeting"]
-      },
-      {
-        id: "1-3",
-        name: "You",
-        subject: "Re: Meeting Tomorrow",
-        message: "Perfect, 10 AM works great. I'll review the requirements doc today and come prepared with any questions.\n\nI think having Sarah join is a good idea. I've been meaning to discuss some UI/UX considerations with her anyway.\n\nI'll have the presentation ready with:\n- Current progress metrics\n- Resource utilization charts\n- Projected timelines\n- Budget breakdown\n\nSee you tomorrow at 10!",
-        date: "over 1 year ago",
-        read: true,
-        labels: ["meeting"]
-      },
-      {
-        id: "1-4",
-        name: "William Smith",
-        subject: "Re: Meeting Tomorrow",
-        message: "Excellent! I've just sent out the calendar invite with all the details. I've also attached the latest version of the requirements document for easy reference.\n\nOne more thing – I just heard from the client that they might have some additional requirements. Nothing major, but we should probably allocate some time to discuss potential impacts on our current plan.\n\nI'll prepare a brief overview of their requests for tomorrow's discussion. Looking forward to our meeting!\n\nBest regards,\nWilliam",
-        date: "over 1 year ago",
-        read: true,
-        labels: ["meeting"]
-      },
-      {
-        id: "1-5",
-        name: "Sarah Wilson",
-        subject: "Re: Meeting Tomorrow",
-        message: "Thanks for including me in tomorrow's meeting. I've been working on some design iterations that I think will address the concerns raised in our last review.\n\nI'll prepare a quick walkthrough of:\n- Updated user flows\n- New component designs\n- Responsive considerations\n- Accessibility improvements\n\nI've also documented some technical considerations that we should discuss with the development team.\n\nSee you all tomorrow!\n\nBest,\nSarah",
-        date: "over 1 year ago",
-        read: true,
-        labels: ["meeting", "design"]
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "Alice Smith",
-    subject: "Re: Project Update",
-    message: "Thank you for the project update. It looks great! I've gone through the report, and the progress is impressive. The team has done a fantastic job, and I appreciate the hard work everyone has put in.\n\nI have a few minor suggestions that I'll include in the attached document.\n\nLet's discuss these during our next meeting. Keep up the excellent work!\n\nBest regards, Alice",
-    date: "Oct 22, 2023, 10:30:00 AM",
-    read: true,
-    labels: ["work", "important"],
-    thread: [
-      {
-        id: "2-1",
-        name: "You",
-        subject: "Project Update",
-        message: "Hi Alice,\n\nHere's the latest project update you requested. We've made significant progress in the last sprint.",
-        date: "Oct 22, 2023, 9:00:00 AM",
-        read: true,
-        labels: ["work"]
-      },
-      {
-        id: "2-2",
-        name: "Alice Smith",
-        subject: "Re: Project Update",
-        message: "Thank you for the project update. It looks great! I've gone through the report...",
-        date: "Oct 22, 2023, 10:30:00 AM",
-        read: true,
-        labels: ["work", "important"]
-      }
-    ]
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    subject: "Weekend Plans",
-    message: "Any plans for the weekend? I was thinking of going hiking in the nearby mountains. It's been a while since we had some outdoor fun. If you're...",
-    date: "almost 2 years ago",
-    read: true,
-    labels: ["personal"]
-  },
-  {
-    id: "4",
-    name: "Sarah Wilson",
-    subject: "Design Review",
-    message: "The latest design mockups are ready for review. I've incorporated the feedback from last week's meeting...",
-    date: "2 days ago",
-    read: false,
-    labels: ["design", "work"],
-  },
-  {
-    id: "5",
-    name: "David Lee",
-    subject: "Team Building Event",
-    message: "Hey everyone! I'm organizing a team building event next month. Please fill out the survey with your preferences...",
-    date: "3 days ago",
-    read: true,
-    labels: ["team", "social"],
-  },
-  {
-    id: "6",
-    name: "Emma Davis",
-    subject: "Client Presentation Feedback",
-    message: "Great job on the client presentation yesterday! The client was very impressed with our proposal...",
-    date: "4 days ago",
-    read: true,
-    labels: ["client", "work", "important"],
-  },
-  {
-    id: "7",
-    name: "Michael Brown",
-    subject: "Budget Review Q4",
-    message: "Please review the attached Q4 budget projections. We need to finalize this by end of week...",
-    date: "5 days ago",
-    read: true,
-    labels: ["finance", "work"],
-  },
-  {
-    id: "8",
-    name: "Lisa Anderson",
-    subject: "New Project Kickoff",
-    message: "Exciting news! We're starting a new project next week. I'd like to schedule a kickoff meeting...",
-    date: "1 week ago",
-    read: true,
-    labels: ["project", "work"],
-  },
-  {
-    id: "9",
-    name: "James Wilson",
-    subject: "Holiday Party Planning",
-    message: "It's that time of year again! We're starting to plan the annual holiday party...",
-    date: "1 week ago",
-    read: true,
-    labels: ["social", "team"],
-  },
-  {
-    id: "10",
-    name: "Rachel Green",
-    subject: "Website Updates",
-    message: "The new website features are ready for testing. Please review and provide feedback by Friday...",
-    date: "2 weeks ago",
-    read: true,
-    labels: ["development", "work"],
-  },
-  {
-    id: "11",
-    name: "Tom Harris",
-    subject: "Training Session",
-    message: "Just a reminder about tomorrow's training session. Please bring your laptops...",
-    date: "2 weeks ago",
-    read: true,
-    labels: ["training", "work"],
-  },
-  {
-    id: "12",
-    name: "Julia Roberts",
-    subject: "Marketing Strategy",
-    message: "Here's the draft of our Q1 marketing strategy. Looking forward to your input...",
-    date: "3 weeks ago",
-    read: true,
-    labels: ["marketing", "work"],
-  },
-  {
-    id: "13",
-    name: "Kevin Chen",
-    subject: "Code Review Request",
-    message: "Could you review my latest PR when you have a chance? It includes the new authentication features...",
-    date: "3 weeks ago",
-    read: true,
-    labels: ["development", "work"],
-  },
-  {
-    id: "14",
-    name: "Anna White",
-    subject: "Office Supply Order",
-    message: "I'm placing an office supply order. Let me know if you need anything specific...",
-    date: "1 month ago",
-    read: true,
-    labels: ["office", "work"],
-  },
-  {
-    id: "15",
-    name: "Peter Parker",
-    subject: "Photo Assignment",
-    message: "Here are the photos from yesterday's event. Let me know which ones you'd like to use...",
-    date: "1 month ago",
-    read: true,
-    labels: ["media", "work"],
-  }
-]
+import ColyseusClient, { Story } from '@/game/utils/ColyseusClient';
 
 export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
-  const [selectedMail, setSelectedMail] = React.useState<Mail | null>(null)
-  const [searchQuery, setSearchQuery] = React.useState("")
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDriftBottle, setIsDriftBottle] = useState<boolean>(false);
+  const [replyText, setReplyText] = useState("");
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isWritingStory, setIsWritingStory] = useState(false);
+  const [newStoryTitle, setNewStoryTitle] = useState("");
+  const [newStoryContent, setNewStoryContent] = useState("");
 
-  // Filter emails based on search query
-  const filteredMails = React.useMemo(() => {
-    if (!searchQuery) return mails
-    
-    const query = searchQuery.toLowerCase()
-    return mails.filter((mail) => 
-      mail.subject.toLowerCase().includes(query) ||
-      mail.message.toLowerCase().includes(query) ||
-      mail.name.toLowerCase().includes(query) ||
-      mail.labels.some(label => label.toLowerCase().includes(query))
-    )
-  }, [searchQuery])
+  // Fetch stories when modal opens
+  useEffect(() => {
+    const fetchStories = async () => {
+      if (!isDriftBottle) return;
+      setLoading(true);
+      try {
+        const fetchedStories = await ColyseusClient.getAllStories();
+        setStories(fetchedStories);
+      } catch (error) {
+        console.error('Failed to fetch stories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStories();
+  }, [isDriftBottle]);
+
+  // Filter stories based on search
+  const filteredStories = React.useMemo(() => {
+    if (!searchQuery) return stories;
+    const query = searchQuery.toLowerCase();
+    return stories.filter((story) => 
+      story.title.toLowerCase().includes(query) ||
+      story.story_content.toLowerCase().includes(query) ||
+      story.author_address.toLowerCase().includes(query)
+    );
+  }, [searchQuery, stories]);
 
   useEffect(() => {
     const handleSwitchScene = () => {
-        setIsDriftBottle((prev) => !prev);
+      setIsDriftBottle((prev) => !prev);
     }
-
-    EventBus.on('switch-driftbottle-scene', handleSwitchScene); 
-
+    EventBus.on('switch-driftbottle-scene', handleSwitchScene);
     return () => {
       EventBus.removeListener('switch-driftbottle-scene');
     };
-}, []);
+  }, []);
 
   const handleClose = () => {
     EventBus.emit('switch-driftbottle-scene');
     EventBus.emit('close-mail');
   };
 
+  const handleSendReply = async () => {
+    if (!selectedStory || !replyText.trim()) return;
+    
+    try {
+      const success = await ColyseusClient.replyToStory(selectedStory.id, replyText);
+      if (success) {
+        setReplyText('');
+        console.log('Reply sent successfully');
+      }
+    } catch (error) {
+      console.error('Failed to send reply:', error);
+    }
+  };
+
+  const handleCreateStory = async () => {
+    if (!newStoryTitle.trim() || !newStoryContent.trim()) return;
+    
+    try {
+      const success = await ColyseusClient.createStory(newStoryTitle, newStoryContent);
+      if (success) {
+        setNewStoryTitle('');
+        setNewStoryContent('');
+        setIsWritingStory(false);
+        // Refresh stories list
+        const fetchedStories = await ColyseusClient.getAllStories();
+        setStories(fetchedStories);
+      }
+    } catch (error) {
+      console.error('Failed to create story:', error);
+    }
+  };
+
   if (!isDriftBottle) return null;
-  
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className={cn(
-        "bg-zinc-900 rounded-xl w-[90%] max-w-6xl h-[90vh] flex flex-col relative border border-zinc-800 shadow-2xl",
-        className
-      )}>
-        {/* Close button */}
-        <button 
-          onClick={handleClose}
-          className="absolute right-4 top-4 p-2 hover:bg-zinc-800 rounded-full transition-colors"
-        >
-          <X className="h-4 w-4 text-zinc-400 hover:text-zinc-100" />
-        </button>
-        
+      <div className={cn("bg-[#2A2A2F] w-[90%] max-w-6xl h-[90vh] flex flex-col relative border-4 border-[#4A4A4F] shadow-[8px_8px_0px_0px_#1A1A1F]", "pixel-corners", className)}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold text-zinc-100">Inbox</h1>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-zinc-800">
-                <ArrowLeft className="h-4 w-4 text-zinc-400" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-zinc-800">
-                <ArrowRight className="h-4 w-4 text-zinc-400" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-zinc-800">
-                <RotateCcw className="h-4 w-4 text-zinc-400" />
-              </Button>
-            </div>
+        <div className="bg-[#4A4A4F] px-6 py-4 flex items-center justify-between border-b-4 border-[#3A3A3F]">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-pixel text-[#4EEAFF] pixel-text">TAVERN STORIES</h1>
+            <button
+              onClick={() => setIsWritingStory(true)}
+              className="px-4 py-2 bg-[#3A3A3F] border-b-2 border-r-2 border-[#1A1A1F] hover:bg-[#5A5A5F] transition-colors text-[#4EEAFF]"
+            >
+              Write New Story
+            </button>
           </div>
+          <button onClick={handleClose} className="w-8 h-8 bg-[#9D5BDE] border-b-2 border-r-2 border-[#1E1B2D] hover:bg-[#B76EFF] transition-colors">
+            <X className="h-4 w-4 text-[#4EEAFF]" />
+          </button>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Message List */}
-          <div className="w-[400px] border-r border-zinc-800">
+          {/* Left panel - Story List */}
+          <div className="w-[400px] border-r-4 border-[#4EEAFF] bg-[#2A4C54]">
             <div className="p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#4EEAFF]/70" />
                 <input
-                  placeholder="Search emails..."
+                  placeholder="Search stories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 pl-9 pr-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-700"
+                  className="w-full bg-[#1A1A1F] border-2 border-[#4A4A4F] px-9 py-2 text-sm text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 focus:outline-none focus:border-[#4EEAFF]/50"
                 />
               </div>
             </div>
-            <ScrollArea className="h-[calc(100vh-12rem)]">
+            <ScrollArea className="h-[calc(100vh-16rem)]">
               <div className="px-4 space-y-2">
-                {filteredMails.map((mail) => (
+                {filteredStories.map((story) => (
                   <div
-                    key={mail.id}
+                    key={story.id}
                     className={cn(
-                      "cursor-pointer space-y-2 rounded-lg p-3 transition-colors",
-                      selectedMail?.id === mail.id ? "bg-zinc-800" : "hover:bg-zinc-800/50",
-                      !mail.read && "font-medium"
+                      "cursor-pointer space-y-2 p-3 border-2",
+                      "transition-colors pixel-corners",
+                      selectedStory?.id === story.id 
+                        ? "bg-[#3A3A3F] border-[#4EEAFF]" 
+                        : "bg-[#2A2A2F] border-[#4A4A4F] hover:border-[#4EEAFF]/50"
                     )}
-                    onClick={() => setSelectedMail(mail)}
+                    onClick={() => setSelectedStory(story)}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1">
-                        <h4 className="font-medium leading-none text-zinc-100">{mail.name}</h4>
-                        <p className="text-sm text-zinc-400">{mail.subject}</p>
+                        <h4 className="font-medium leading-none text-[#4EEAFF]">
+                          {story.author_address.slice(0, 6)}...{story.author_address.slice(-4)}
+                        </h4>
+                        <p className="text-sm text-[#4EEAFF]/70">{story.title}</p>
                       </div>
-                      <div className="text-xs text-zinc-500">
-                        {mail.date}
+                      <div className="text-xs text-[#4EEAFF]/50">
+                        {new Date(story.created_at).toLocaleString()}
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-400 line-clamp-2">
-                      {mail.message}
+                    <p className="text-xs text-[#4EEAFF]/70 line-clamp-2">
+                      {story.story_content}
                     </p>
-                    <div className="flex gap-2">
-                      {mail.labels.map((label) => (
-                        <span
-                          key={label}
-                          className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300"
-                        >
-                          {label}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                 ))}
               </div>
             </ScrollArea>
           </div>
 
-          {/* Message Content */}
-          {selectedMail ? (
-            <ScrollArea className="flex-1 bg-zinc-900">
+          {/* Right panel - Story View/Create */}
+          <div className="flex-1 flex flex-col bg-[#2A4C54]">
+            {isWritingStory ? (
               <div className="p-8">
                 <div className="mx-auto max-w-3xl">
-                  <Accordion type="single" collapsible className="space-y-4">
-                    <AccordionItem key={selectedMail.id} value={selectedMail.id} className="border-zinc-800">
-                      <AccordionTrigger className="flex gap-4 text-left hover:bg-zinc-800 rounded-lg px-4">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-zinc-100">{selectedMail.subject}</h3>
-                            <span className="text-sm text-zinc-500">
-                              {selectedMail.date}
-                            </span>
-                          </div>
-                          <div className="text-sm text-zinc-400">
-                            From: {selectedMail.name}
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-zinc-300 px-4">
-                        <div className="pt-4 text-sm">
-                          <div className="whitespace-pre-wrap">{selectedMail.message}</div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                  <div className="bg-[#1E1B2D] border-4 border-[#4EEAFF] p-6 pixel-corners space-y-4">
+                    <input
+                      type="text"
+                      value={newStoryTitle}
+                      onChange={(e) => setNewStoryTitle(e.target.value)}
+                      placeholder="Story Title..."
+                      className="w-full bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3 
+                               text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
+                               focus:outline-none focus:border-[#4EEAFF]/50
+                               font-pixel text-sm pixel-corners"
+                    />
+                    <textarea
+                      value={newStoryContent}
+                      onChange={(e) => setNewStoryContent(e.target.value)}
+                      placeholder="Write your story here..."
+                      className="w-full bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3 h-[50vh] 
+                               text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
+                               focus:outline-none focus:border-[#4EEAFF]/50
+                               font-pixel text-sm resize-none pixel-corners"
+                    />
+                    <div className="flex justify-end gap-4">
+                      <button
+                        onClick={() => setIsWritingStory(false)}
+                        className="px-4 py-2 bg-[#2A2A2F] border-2 border-[#4A4A4F]
+                                 text-[#4EEAFF] hover:bg-[#3A3A3F] transition-colors
+                                 font-pixel text-sm pixel-corners"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleCreateStory}
+                        disabled={!newStoryTitle.trim() || !newStoryContent.trim()}
+                        className="px-4 py-2 bg-[#2A2A2F] border-2 border-[#4EEAFF]
+                                 text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
+                                 disabled:opacity-50 disabled:cursor-not-allowed
+                                 font-pixel text-sm pixel-corners"
+                      >
+                        Publish Story
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </ScrollArea>
-          ) : (
-            <div className="flex h-full items-center justify-center bg-zinc-900">
-              <p className="text-zinc-500">Select a message to read</p>
-            </div>
-          )}
+            ) : selectedStory ? (
+              <>
+                <ScrollArea className="flex-1">
+                  <div className="p-8">
+                    <div className="mx-auto max-w-3xl">
+                      <div className="bg-[#1E1B2D] border-4 border-[#4EEAFF] p-6 pixel-corners">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-[#4EEAFF]">{selectedStory.title}</h3>
+                          <span className="text-sm text-[#4EEAFF]/50">
+                            {new Date(selectedStory.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-sm text-[#4EEAFF]/70 mt-2">
+                          From: {selectedStory.author_address.slice(0, 6)}...{selectedStory.author_address.slice(-4)}
+                        </div>
+                        <div className="mt-4 text-[#4EEAFF]/90 whitespace-pre-wrap">
+                          {selectedStory.story_content}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollArea>
+
+                <div className="p-4 border-t-4 border-[#4EEAFF] bg-[#1E1B2D]">
+                  <div className="mx-auto max-w-3xl">
+                    <div className="flex gap-4">
+                      <textarea 
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Write your reply..."
+                        className="flex-1 bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3 h-24 
+                                 text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
+                                 focus:outline-none focus:border-[#4EEAFF]/50
+                                 font-pixel text-sm resize-none pixel-corners"
+                      />
+                      <button
+                        onClick={handleSendReply}
+                        disabled={!replyText.trim()}
+                        className="px-4 py-2 bg-[#2A2A2F] border-b-2 border-r-2 
+                                 border-[#1E1B2D] hover:bg-[#9D5BDE] transition-colors
+                                 disabled:opacity-50 disabled:cursor-not-allowed
+                                 pixel-corners"
+                      >
+                        <Send className="h-5 w-5 text-[#4EEAFF]" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-[#4EEAFF]/50 font-pixel">Select a story to read</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 } 

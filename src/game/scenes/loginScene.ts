@@ -25,8 +25,8 @@ export class loginScene extends Scene {
     }
 
     create() {
-        const width = Math.min(window.innerWidth, 550);
-        const height = Math.min(window.innerHeight, 1195);
+        const width = Math.min(window.innerWidth, 1195);
+        const height = Math.min(window.innerHeight, 550);
 
         // 添加标题
         this.add.text(width / 2, height * 0.4, '欢迎来到 Web3 酒馆', {

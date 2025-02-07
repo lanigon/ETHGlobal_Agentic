@@ -8,21 +8,21 @@ import BottleDetailScene from './scenes/BottleDetailScene';
 
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
-    width: Math.min(window.innerWidth, 550),
-    height: Math.min(window.innerHeight, 1195),
+    width: Math.min(window.innerWidth, 1195),
+    height: Math.min(window.innerHeight, 550),
     parent: 'game-container',
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: Math.min(window.innerWidth, 550),
-        height: Math.min(window.innerHeight, 1195),
+        width: Math.min(window.innerWidth, 1195),
+        height: Math.min(window.innerHeight, 550),
         min: {
-            width: 300,
-            height: 600
+            width: 600,
+            height: 300
         },
         max: {
-            width: 550,
-            height: 1195
+            width: 1195,
+            height: 550
         }
     },
     physics: {

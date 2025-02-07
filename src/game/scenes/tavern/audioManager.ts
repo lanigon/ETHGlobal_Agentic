@@ -10,7 +10,8 @@ export class AudioManager {
   }
 
   public initialize() {
-    const wizball = this.scene.add.image(50, 750, 'wizball').setScale(1);
+    const wizball = this.scene.add.image(750, 50, 'wizball').setScale(1);
+    // const wizball = this.scene.add.image(50, 750, 'wizball').setScale(1);
     this.music = this.scene.sound.add('theme');
     wizball.setInteractive();
 

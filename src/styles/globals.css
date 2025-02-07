@@ -117,3 +117,35 @@ body {
     @apply bg-background text-foreground;
     }
 }
+
+/* Pixel art styles */
+@font-face {
+  font-family: 'PixelFont';
+  src: url('/fonts/PressStart2P-Regular.ttf') format('truetype');
+}
+
+.font-pixel {
+  font-family: 'PixelFont', monospace;
+  letter-spacing: 0.05em;
+}
+
+.pixel-corners {
+  clip-path: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+}
+
+.pixel-text {
+  text-shadow: 2px 2px 0px #1A1A1F;
+}

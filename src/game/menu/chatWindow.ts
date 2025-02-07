@@ -18,17 +18,29 @@ export class ChatWindow {
     Object.assign(this.chatContainer.style, {
       position: 'fixed',
       bottom: '20px',
-      right: '20px',
+      left: '20px',
       width: '400px',
       height: '500px',
-      backgroundColor: '#1a1a1a',
-      borderRadius: '12px',
-      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
-      border: '1px solid #333',
+      backgroundColor: '#1E1B2D',
+      border: '4px solid #4EEAFF',
       display: 'none',
       flexDirection: 'column',
       padding: '16px',
-      zIndex: '1000'
+      zIndex: '1000',
+      clipPath: `polygon(
+        0 4px,
+        4px 4px,
+        4px 0,
+        calc(100% - 4px) 0,
+        calc(100% - 4px) 4px,
+        100% 4px,
+        100% calc(100% - 4px),
+        calc(100% - 4px) calc(100% - 4px),
+        calc(100% - 4px) 100%,
+        4px 100%,
+        4px calc(100% - 4px),
+        0 calc(100% - 4px)
+      )`
     });
 
     this.chatHistory = document.createElement('div');
@@ -38,19 +50,33 @@ export class ChatWindow {
       marginBottom: '12px',
       padding: '8px',
       scrollbarWidth: 'thin',
-      scrollbarColor: '#666 #1a1a1a'
+      scrollbarColor: '#4EEAFF #1E1B2D'
     });
 
     this.chatInput = document.createElement('input');
     Object.assign(this.chatInput.style, {
       width: '100%',
       padding: '12px',
-      border: '1px solid #333',
-      borderRadius: '8px',
+      border: '2px solid #4EEAFF',
+      backgroundColor: '#2A4C54',
       outline: 'none',
-      color: '#fff',
-      backgroundColor: '#2d2d2d',
-      fontSize: '14px'
+      color: '#4EEAFF',
+      fontSize: '14px',
+      fontFamily: 'PixelFont, monospace',
+      clipPath: `polygon(
+        0 4px,
+        4px 4px,
+        4px 0,
+        calc(100% - 4px) 0,
+        calc(100% - 4px) 4px,
+        100% 4px,
+        100% calc(100% - 4px),
+        calc(100% - 4px) calc(100% - 4px),
+        calc(100% - 4px) 100%,
+        4px 100%,
+        4px calc(100% - 4px),
+        0 calc(100% - 4px)
+      )`
     });
     this.chatInput.placeholder = 'Type your message...';
 
@@ -61,23 +87,36 @@ export class ChatWindow {
       right: '12px',
       width: '28px',
       height: '28px',
-      borderRadius: '50%',
-      border: '1px solid #333',
-      backgroundColor: '#2d2d2d',
+      border: '2px solid #4EEAFF',
+      backgroundColor: '#2A4C54',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontSize: '18px',
-      color: '#fff',
-      transition: 'all 0.2s ease'
+      color: '#4EEAFF',
+      transition: 'all 0.2s ease',
+      clipPath: `polygon(
+        0 4px,
+        4px 4px,
+        4px 0,
+        calc(100% - 4px) 0,
+        calc(100% - 4px) 4px,
+        100% 4px,
+        100% calc(100% - 4px),
+        calc(100% - 4px) calc(100% - 4px),
+        calc(100% - 4px) 100%,
+        4px 100%,
+        4px calc(100% - 4px),
+        0 calc(100% - 4px)
+      )`
     });
     this.closeButton.innerHTML = '×';
     this.closeButton.addEventListener('mouseover', () => {
-      this.closeButton!.style.backgroundColor = '#444';
+      this.closeButton!.style.backgroundColor = '#9D5BDE';
     });
     this.closeButton.addEventListener('mouseout', () => {
-      this.closeButton!.style.backgroundColor = '#2d2d2d';
+      this.closeButton!.style.backgroundColor = '#2A4C54';
     });
     this.closeButton.addEventListener('click', () => this.hide());
 
@@ -130,22 +169,36 @@ export class ChatWindow {
     Object.assign(messageDiv.style, {
       marginBottom: '8px',
       padding: '12px',
-      borderRadius: '8px',
       maxWidth: '80%',
       wordWrap: 'break-word',
       fontSize: '14px',
+      fontFamily: 'PixelFont, monospace',
       ...(sender === 'user' 
         ? {
             marginLeft: 'auto',
-            backgroundColor: '#4a4a4a',
-            color: '#fff',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+            backgroundColor: '#2A4C54',
+            color: '#4EEAFF',
+            border: '2px solid #4EEAFF'
           }
         : {
-            backgroundColor: '#2d2d2d',
-            color: '#fff',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-          })
+            backgroundColor: '#1E1B2D',
+            color: '#4EEAFF',
+            border: '2px solid #4EEAFF'
+          }),
+      clipPath: `polygon(
+        0 4px,
+        4px 4px,
+        4px 0,
+        calc(100% - 4px) 0,
+        calc(100% - 4px) 4px,
+        100% 4px,
+        100% calc(100% - 4px),
+        calc(100% - 4px) calc(100% - 4px),
+        calc(100% - 4px) 100%,
+        4px 100%,
+        4px calc(100% - 4px),
+        0 calc(100% - 4px)
+      )`
     });
     messageDiv.textContent = text;
     this.chatHistory.appendChild(messageDiv);
