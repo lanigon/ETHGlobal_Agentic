@@ -28,10 +28,6 @@ contract TarvenNFT is ERC721URIStorage, Ownable {
         aiAddress = _newAIAddress;
     }
     
-    /// @notice mintNFT 函数，仅允许 AI 地址调用，用于铸造 NFT 并发送给指定地址
-    /// @param recipient 接收 NFT 的地址
-    /// @param tokenURI NFT 的元数据 URI
-    /// @return newItemId 新铸造的 NFT 的 tokenId
     function mintNFT(address recipient, string memory tokenURI) external onlyAI returns (uint256) {
         _tokenIds++; 
         uint256 newItemId = _tokenIds;
