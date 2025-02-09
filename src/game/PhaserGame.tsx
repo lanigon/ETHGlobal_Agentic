@@ -2,9 +2,8 @@ import { forwardRef, useEffect, useLayoutEffect, useRef } from 'react';
 import StartGame from './main';
 import { EventBus } from './EventBus';
 import { ReactPhaserBridge } from './utils/login';
-import { HtmlOverlay } from '@/components/bottle';
 import { Mail } from "@/components/mail"
-import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
+import { Wagmi } from '@/components/provider/wagmiProvider';
 
 export interface IRefPhaserGame {
     game: Phaser.Game | null;
@@ -60,12 +59,11 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <div id="game-container" style={{ width: '100%', height: '100%' }}></div>
-            <SuiClientProvider>
-                <WalletProvider autoConnect>
-                    <ReactPhaserBridge />
-                </WalletProvider>
-            </SuiClientProvider>
-            <Mail />
+            <Wagmi>
+                <ReactPhaserBridge />
+                <Mail />
+            </Wagmi>
+
             {/* <HtmlOverlay /> */}
         </div >
     );

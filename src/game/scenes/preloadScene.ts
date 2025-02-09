@@ -12,11 +12,11 @@ export class preloadScene extends Scene {
   }
 
   init() {
-    const width = Math.min(window.innerWidth, 1195);
-    const height = Math.min(window.innerHeight, 550);
+    const width = Math.min(window.innerWidth, 4800);
+    const height = Math.min(window.innerHeight, 2700);
 
     // 添加加载文本
-    this.loadingText = this.add.text(width/2, height * 0.5, '加载中...', {
+    this.loadingText = this.add.text(width/2, height * 0.5, 'loading...', {
       fontSize: '32px',
       color: '#ffffff'
     }).setOrigin(0.5);
