@@ -1,4 +1,3 @@
-import { HtmlOverlay } from "@/components/bottle";
 import Providers from "@/components/provider/privyProvider";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";

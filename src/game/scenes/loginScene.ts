@@ -25,37 +25,31 @@ export class loginScene extends Scene {
     }
 
     create() {
+        const { width, height } = this.scale;
+
+        // 1. 添加背景图并调整亮度
+        const background = this.add
+            .image(width / 2, height / 2, "cover")
+            .setOrigin(0.5)
+            .setDisplaySize(width, height)
+            .setTint(0x666666); // 使用较暗的色调，可以调整这个值来控制亮度
+
+        // 2. 添加黑色蒙版
+        const overlay = this.add.graphics();
+        overlay.fillStyle(0x000000, 0.05);
+        overlay.fillRect(0, 0, width, height);
+
+        // 3. 添加登录按钮
+
+        // 添加按钮悬停效果
+
         // Get full screen size
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-
-        // Add background image and set to cover full screen
-        const background = this.add.image(width / 2, height / 2, "cover");
-
-        // Set scale mode to cover entire screen while maintaining aspect ratio
-        const scaleX = width / background.width;
-        const scaleY = height / background.height;
-        const scale = Math.max(scaleX, scaleY);
-        background.setScale(scale);
-
-        // Set game canvas size to fullscreen
-        this.scale.resize(width, height);
-
-        // Enable fullscreen adaptation with background scaling
-        this.scale.setGameSize(width, height);
-        this.scale.on("resize", (gameSize: any) => {
-            const w = gameSize.width;
-            const h = gameSize.height;
-            const newScaleX = w / background.width;
-            const newScaleY = h / background.height;
-            const newScale = Math.max(newScaleX, newScaleY);
-            background.setScale(newScale);
-            background.setPosition(w / 2, h / 2);
-        });
+        const fullWidth = window.innerWidth;
+        const fullHeight = window.innerHeight;
 
         // Add title with elegant style
         const title = this.add
-            .text(width / 2, height * 0.4, "Welcome to BEFORELIFE", {
+            .text(fullWidth / 2, fullHeight * 0.4, "Welcome to BEFORELIFE", {
                 fontSize: "48px",
                 color: "#ffffff",
                 fontFamily: "Georgia, serif",
@@ -84,7 +78,7 @@ export class loginScene extends Scene {
 
         // Dynamically create ConnectButton container
         this.connectButtonContainer = this.add
-            .dom(width / 2, height * 0.6)
+            .dom(fullWidth / 2, fullHeight * 0.6)
             .createElement("div");
 
         // Create elegant button background
@@ -96,15 +90,15 @@ export class loginScene extends Scene {
         button.lineStyle(2, 0xffffff, 1);
         button.fillStyle(0x4a90e2, 1);
         button.fillRoundedRect(
-            width / 2 - buttonWidth / 2,
-            height * 0.6 - buttonHeight / 2,
+            fullWidth / 2 - buttonWidth / 2,
+            fullHeight * 0.6 - buttonHeight / 2,
             buttonWidth,
             buttonHeight,
             15
         );
         button.strokeRoundedRect(
-            width / 2 - buttonWidth / 2,
-            height * 0.6 - buttonHeight / 2,
+            fullWidth / 2 - buttonWidth / 2,
+            fullHeight * 0.6 - buttonHeight / 2,
             buttonWidth,
             buttonHeight,
             15
@@ -113,8 +107,8 @@ export class loginScene extends Scene {
         button
             .setInteractive(
                 new Phaser.Geom.Rectangle(
-                    width / 2 - buttonWidth / 2,
-                    height * 0.6 - buttonHeight / 2,
+                    fullWidth / 2 - buttonWidth / 2,
+                    fullHeight * 0.6 - buttonHeight / 2,
                     buttonWidth,
                     buttonHeight
                 ),
@@ -125,15 +119,15 @@ export class loginScene extends Scene {
                 button.lineStyle(2, 0xffffff, 1);
                 button.fillStyle(0x357abd, 1);
                 button.fillRoundedRect(
-                    width / 2 - buttonWidth / 2,
-                    height * 0.6 - buttonHeight / 2,
+                    fullWidth / 2 - buttonWidth / 2,
+                    fullHeight * 0.6 - buttonHeight / 2,
                     buttonWidth,
                     buttonHeight,
                     15
                 );
                 button.strokeRoundedRect(
-                    width / 2 - buttonWidth / 2,
-                    height * 0.6 - buttonHeight / 2,
+                    fullWidth / 2 - buttonWidth / 2,
+                    fullHeight * 0.6 - buttonHeight / 2,
                     buttonWidth,
                     buttonHeight,
                     15
@@ -144,15 +138,15 @@ export class loginScene extends Scene {
                 button.lineStyle(2, 0xffffff, 1);
                 button.fillStyle(0x4a90e2, 1);
                 button.fillRoundedRect(
-                    width / 2 - buttonWidth / 2,
-                    height * 0.6 - buttonHeight / 2,
+                    fullWidth / 2 - buttonWidth / 2,
+                    fullHeight * 0.6 - buttonHeight / 2,
                     buttonWidth,
                     buttonHeight,
                     15
                 );
                 button.strokeRoundedRect(
-                    width / 2 - buttonWidth / 2,
-                    height * 0.6 - buttonHeight / 2,
+                    fullWidth / 2 - buttonWidth / 2,
+                    fullHeight * 0.6 - buttonHeight / 2,
                     buttonWidth,
                     buttonHeight,
                     15
@@ -162,7 +156,7 @@ export class loginScene extends Scene {
 
         // Add button text with elegant style
         this.loginText = this.add
-            .text(width / 2, height * 0.6, "Connect Wallet", {
+            .text(fullWidth / 2, fullHeight * 0.6, "Connect Wallet", {
                 fontSize: "26px",
                 color: "#ffffff",
                 fontFamily: "Arial, sans-serif",
@@ -192,8 +186,8 @@ export class loginScene extends Scene {
                 // Display error message
                 this.add
                     .text(
-                        width / 2,
-                        height * 0.7,
+                        fullWidth / 2,
+                        fullHeight * 0.7,
                         `failed: ${response.error}`,
                         {
                             fontSize: "16px",

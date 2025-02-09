@@ -158,10 +158,17 @@ export class preloadScene extends Scene {
             frameWidth: 32,
             frameHeight: 48,
         });
+        this.load.spritesheet("userMove", "animation/move.avif", {
+            frameWidth: 32,
+            frameHeight: 48,
+        });
+        this.load.image("user", "animation/david.png");
+        this.load.image("barwoman", "animation/lucy.png");
         this.load.audio("theme", [
             "audio/oedipus_wizball_highscore.ogg",
             "audio/oedipus_wizball_highscore.mp3",
         ]);
+
         this.load.image("wizball", "img/wizball.png");
 
         this.registry.set("gridSize", 50);

@@ -92,8 +92,10 @@ export class SceneManager {
             this.scene,
             20 * this.gridSize,
             4 * this.gridSize,
-            "player"
+            "user"
         );
+        this.player.sprite.setDisplaySize(this.gridSize*1.6, this.gridSize*3.8);
+
         this.cursors = this.scene.input.keyboard!.createCursorKeys();
         this.scene.physics.add.collider(
             this.player.sprite,
@@ -103,11 +105,12 @@ export class SceneManager {
         // 创建酒保
         this.barman = new Barman(
             this.scene,
-            11 * this.gridSize,
-            6 * this.gridSize,
-            "barman"
+            7 * this.gridSize,
+            5.1 * this.gridSize,
+            "barwoman"
         );
         this.barman.sprite.setInteractive();
+        this.barman.sprite.setDisplaySize(this.gridSize*1.6, this.gridSize*3);
     }
 
     private setupCamera() {
