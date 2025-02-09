@@ -1,4 +1,4 @@
-# BeforeLife Bar for ETH Agentic
+# BeforeLife Bar for ETH Global Agentic
 
 `npm install`
 or
