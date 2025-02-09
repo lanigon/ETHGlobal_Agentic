@@ -103,11 +103,12 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
   const sendCoin = async () => {
     if (!approveAmount || isSending) return;
-    
+    console.log(approveAmount)
+    console.log("reci::"+recipient)
     setIsSending(true);
     try {
         // 先批准代币
-        await writeContract({
+        writeContract({
             address: payAddress,
             abi: payAbi,
             functionName: "approve",
@@ -115,14 +116,14 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
         });
         
         // 发送代币
-        await writeContract({
+        const id = writeContract({
             address: transferAddress,
             abi: transferAbi,
             functionName: "deposit",
             args: [recipient, approveAmount]
         });
         
-        console.log("Coin sent successfully");
+        console.log(id);
         setApproveAmount(0); // 清空输入框
     } catch (error) {
         console.error("Failed to send coin:", error);
@@ -135,7 +136,7 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
     if (!address) return;
     setClaimStatus("Claiming...");
     try {
-        await writeContract({
+        writeContract({
             address: transferAddress,
             abi: transferAbi,
             functionName: "withdraw",
@@ -210,7 +211,7 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
   const handleSendReply = async () => {
     if (!selectedStory || !replyText.trim()) return;
-    
+    await sendCoin()
     try {
         const success = await ColyseusClient.replyToStory(selectedStory.id, replyText);
         if (success) {
@@ -492,41 +493,9 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                               {/* Add Action Buttons */}
                               <div className="flex justify-end gap-2 mt-4">
                                 {/* 代币操作区域 */}
-                                <div className="flex items-center gap-2 mr-4">
-                                    <input
-                                        type="number"
-                                        value={approveAmount}
-                                        onChange={(e) => setApproveAmount(Number(e.target.value))}
-                                        className="w-24 bg-[#2A2A2F] border-2 border-[#4A4A4F] px-2 py-1
-                                                text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
-                                                focus:outline-none focus:border-[#4EEAFF]/50"
-                                        placeholder="Amount"
-                                        min="0"
-                                    />
-                                    <button
-                                        onClick={sendCoin}
-                                        disabled={isSending || !approveAmount}
-                                        className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
-                                                text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
-                                                font-pixel text-sm pixel-corners flex items-center gap-1"
-                                    >
-                                        {isSending ? "Sending..." : "Send"}
-                                    </button>
-                                </div>
 
                                 {/* 简化后的 Claim 按钮 */}
-                                <button
-                                    onClick={() => claimCoin(0)} // 根据实际合约调整参数
-                                    className="px-3 py-1 bg-[#FFD700] border-2 border-[#B8860B] 
-                                            text-[#8B4513] hover:bg-[#FFC125] transition-colors
-                                            font-pixel text-sm pixel-corners flex items-center gap-1"
-                                >
-                                    <div className="w-4 h-4 relative">
-                                        <div className="absolute inset-0 rounded-full bg-[#FFD700] border-2 border-[#B8860B]" />
-                                        <div className="absolute inset-[25%] text-[8px] font-bold text-[#B8860B]">$</div>
-                                    </div>
-                                    Claim
-                                </button>
+                                
 
                                 {/* 原有的 Like 按钮保持不变 */}
                                 <button
@@ -624,6 +593,18 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                                                         {reply.reply_content}
                                                     </div>
                                                 </div>
+                                                <button
+                                                  onClick={() => claimCoin(0)} // 根据实际合约调整参数
+                                                  className="px-3 py-1 bg-[#FFD700] border-2 border-[#B8860B] 
+                                                          text-[#8B4513] hover:bg-[#FFC125] transition-colors
+                                                          font-pixel text-sm pixel-corners flex items-center gap-1 ml-6"
+                                              >
+                                                  <div className="w-4 h-4 relative">
+                                                      <div className="absolute inset-0 rounded-full bg-[#FFD700] border-2 border-[#B8860B]" />
+                                                      <div className="absolute inset-[25%] text-[8px] font-bold text-[#B8860B]">$</div>
+                                                  </div>
+                                                  Claim
+                                              </button>
                                             </AccordionContent>
                                         </AccordionItem>
                                     </Accordion>
@@ -657,6 +638,18 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                                                         focus:outline-none focus:border-[#4EEAFF]/50 resize-none mt-4"
                                             />
                                             <div className="flex justify-end mt-4">
+                                              <div className="flex items-center gap-2 mr-4">
+                                                  <input
+                                                      type="number"
+                                                      value={approveAmount}
+                                                      onChange={(e) => setApproveAmount(Number(e.target.value))}
+                                                      className="w-24 bg-[#2A2A2F] border-2 border-[#4A4A4F] px-2 py-1
+                                                              text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
+                                                              focus:outline-none focus:border-[#4EEAFF]/50"
+                                                      placeholder="Amount"
+                                                      min="0"
+                                                  />
+                                              </div>
                                                 <button
                                                     onClick={() => handleSendReply()}
                                                     disabled={!replyText.trim()}

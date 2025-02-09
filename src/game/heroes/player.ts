@@ -69,10 +69,8 @@ export default class Player {
                 case "right":
                     this.sprite.setFrame(6);
                     break;
-                case "up":
-                case "down":
-                    this.sprite.setFrame(4);
-                    break;
+                case "up":break;
+                case "down":break;
             }
         }
 
