@@ -1,0 +1,1 @@
+import { callFaucet, callMintNFT } from "./ai-interaction"

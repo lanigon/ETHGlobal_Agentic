@@ -1,0 +1,37 @@
+{
+  "name": "agent.demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^1.1.5",
+    "@ai-sdk/provider": "0.0.26",
+    "@llm-tools/embedjs": "^0.1.28",
+    "@llm-tools/embedjs-libsql": "^0.1.28",
+    "@llm-tools/embedjs-loader-web": "^0.1.28",
+    "@llm-tools/embedjs-openai": "^0.1.28",
+    "agent.demo": "link:",
+    "ai": "^4.1.13",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "express": "^5.0.1",
+    "nillion-sv-wrappers": "^1.0.9",
+    "ts-swarm": "^1.2.6",
+    "viem": "^2.22.17",
+    "zod": "^3.24.1"
+  }
+}

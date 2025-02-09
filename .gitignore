@@ -1,0 +1,17 @@
+
+# typescript -> tx runtime
+agent.node_runtime/.env
+agent.node_runtime/node_modules/
+
+# python -> py_runtime
+agent.py_runtime/.env
+agent.py_runtime/agent_venv/
+
+.env
+
+# python __pycache__
+**__pycache__/
+
+trash/
+
+agent.node_runtime/src/nillion_vault/nillionOrgConfig.ts
