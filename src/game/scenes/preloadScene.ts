@@ -150,17 +150,9 @@ export class preloadScene extends Scene {
         this.load.image("back", "img/back.png");
         this.load.image("driftbottle", "img/driftbottle.png");
         this.load.image("driftbottle_bg", "img/driftbottle_bg.png");
-        this.load.spritesheet("player", "animation/move.avif", {
-            frameWidth: 32,
-            frameHeight: 48,
-        });
-        this.load.spritesheet("barman", "animation/move.avif", {
-            frameWidth: 32,
-            frameHeight: 48,
-        });
-        this.load.spritesheet("userMove", "animation/move.avif", {
-            frameWidth: 32,
-            frameHeight: 48,
+        this.load.spritesheet("player", "animation/move.png", {
+            frameWidth: 280,
+            frameHeight: 550,
         });
         this.load.image("user", "animation/david.png");
         this.load.image("barwoman", "animation/lucy.png");

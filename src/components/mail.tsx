@@ -8,7 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { EventBus } from '@/game/EventBus';
 import ColyseusClient, { Story, Reply } from '@/game/utils/ColyseusClient';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { useReadContract, useWriteContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
+import { transferAddress, transferAbi, payAddress, payAbi } from "@/lib/abi";
 
 // Mock data for bar stories (stories received from others)
 const MOCK_BAR_STORIES: Story[] = [
@@ -84,9 +85,30 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [isMyStories, setIsMyStories] = useState(false);
   const [replyGroups, setReplyGroups] = useState<{ [key: string]: Reply[] }>({});
+  const {address} = useAccount()
   const {writeContract} = useWriteContract()
 
-  
+  const {data: coinBalance, refetch} = useReadContract({
+    address: payAddress,
+    abi: payAbi,
+    functionName: "balanceOf",
+    args: [address]
+  })
+
+  const sendCoin = async () => {
+    writeContract({
+      address: transferAddress,
+      abi: transferAbi,
+      functionName: "transfer",
+      args: [address, address, 100]
+    })
+  }
+  const claimCoin = async () => {
+    if (!address) return
+    writeContract({
+      
+    })
+  }
 
   const fetchStories = async (isMyStoriesView: boolean) => {
     setLoading(true);

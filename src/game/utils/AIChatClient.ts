@@ -24,11 +24,20 @@ class AIChatClient {
         }
 
         try {
+            // 立即显示一个加载状态
+            EventBus.emit("chat-loading", true);
+            
             console.log("🚀 Sending message to AI:", message);
             this.isStreaming = true;
             const response = await fetch(this.API_URL, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    // 确保不被代理缓存
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no"
+                },
+                // 确保使用流式传输
                 body: JSON.stringify({
                     user_id: "0xfA5aC709311146dA718B3fba0a90A3Bd96e7a471",
                     content: message
@@ -62,7 +71,8 @@ class AIChatClient {
                     try {
                         const chunkData = JSON.parse(jsonStr);
                         if (chunkData.type === "agent_answer") {
-                            // Emit each chunk immediately
+                            // 添加一个小延迟模拟打字效果
+                            await new Promise(resolve => setTimeout(resolve, 30));
                             EventBus.emit("chat-stream", {
                                 chunk: chunkData.content,
                                 isComplete: false
@@ -87,6 +97,7 @@ class AIChatClient {
 
         } catch (error) {
             console.error("❌ AI回复失败:", error);
+            EventBus.emit("chat-loading", false);
         } finally {
             this.isStreaming = false;
         }

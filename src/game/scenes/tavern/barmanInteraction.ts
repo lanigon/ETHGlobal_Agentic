@@ -51,26 +51,24 @@ export class BarmanInteraction {
             this.barman.sprite.y
         );
         const maxDistance = this.gridSize * 5;
+        if (this.isDialogVisible) return;
+        this.isDialogVisible = true;
 
-        if (distance <= maxDistance) {
-            if (this.isDialogVisible) return;
-            this.isDialogVisible = true;
-
-            this.dialog = new Dialog(this.scene);
-            const dialogs = [
-                { text: "欢迎光临！需要什么帮助吗？" },
-                {
-                    text: "这里是我们镇上最好的酒馆。请选择一个选项：",
-                    options: [
-                        { text: "Chat", callback: () => this.startChat() },
-                        { text: "Leave", callback: () => this.endDialog() },
-                    ],
-                },
-            ];
-            this.dialog.showDialogs(dialogs);
-        } else {
-            console.log("你离 Barman 太远了。");
-        }
+        this.dialog = new Dialog(this.scene);
+        const dialogs = [
+            {
+                text: "Welcome to Web3 Tavern! I'm the bartender here, how can I help you today?",
+            },
+            {
+                text: "It's the best bar!",
+                options: [
+                    { text: "Chat", callback: () => this.startChat() },
+                    { text: "Leave", callback: () => this.endDialog() },
+                ],
+            },
+        ];
+        this.dialog.showDialogs(dialogs);
+        return true;
     }
 
     private startChat() {
@@ -83,14 +81,18 @@ export class BarmanInteraction {
         );
     }
 
-    private handleBarmanResponse(userMessage: string) {
+    private async handleBarmanResponse(userMessage: string) {
         console.log("💬 User message:", userMessage);
         // Show user message immediately without animation
         this.chatWindow.addMessage(userMessage, "user");
 
+        // Show loading message immediately after user message
+        this.chatWindow.appendStreamingMessage("", false); // This will show the loading indicator
+
         // Use AIChatClient for AI response
         AIChatClient.sendMessage(userMessage).catch((error) => {
             console.error("Failed to get AI response:", error);
+            // Optionally handle error in UI
         });
     }
 
@@ -109,6 +111,15 @@ export class BarmanInteraction {
     }
 
     public isContained(x: number, y: number): boolean {
-        return this.dialog?.isContained(x, y) || false;
+        // 检查是否点击了对话框
+        const inDialog = this.dialog?.isContained(x, y) || false;
+
+        // 检查是否点击了酒保
+        const barmanBounds = this.barman.sprite.getBounds();
+        console.log(barmanBounds);
+        const inBarman = barmanBounds.contains(x, y);
+
+        // 如果正在显示对话或选项，或者点击了酒保，都算"占据屏幕"
+        return inDialog || inBarman;
     }
 }
