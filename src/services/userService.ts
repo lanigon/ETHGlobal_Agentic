@@ -1,5 +1,5 @@
 import { getUserState, setUserState, UserState } from "../database/stateDB";
-import { createUser, getUserByAddress, getUserPoints, updateUserPoints, User } from "../database/userDB";
+import { createUser, getIntimacy, getUserByAddress, getUserPoints, updateIntimacy, updateUserPoints, User } from "../database/userDB";
 
 interface UserDailyState {
     published_num: number;
@@ -38,6 +38,7 @@ export class UserService {
         } else {
             // 如果没有找到当天的状态，初始化为默认值
             await setUserState(address, 0, 0, 0);
+            await this.updateWhiskeyPoints(address, 10);
             const newState = await getUserState(address);
             if (!newState) {
                 throw new Error("Failed to initialize user daily state.");
@@ -55,11 +56,40 @@ export class UserService {
         return updateUserPoints(address, newPoints);
     }
 
+    static async getIntimacy(address: string): Promise<number> {
+        return getIntimacy(address);
+    }
+
+    static async updateIntimacy(address: string, newIntimacy: number): Promise<User | null> {
+        return updateIntimacy(address, newIntimacy);
+    }
+
     static async getLikedStories(address: string) {
-        const user = getUserByAddress(address);
+        const user = await getUserByAddress(address);
         if (!user) {
             throw new Error("User not found.");
         }
-        return (await user).likedStories;
+
+        let likedStories = user.likedStories;
+
+        console.log(likedStories);
+
+        // 处理 `{}` 为空数组
+        if (typeof likedStories === "object" && likedStories !== null && !Array.isArray(likedStories)) {
+            console.warn("⚠️ likedStories 是 `{}`，转换为空数组");
+            likedStories = [];
+        }
+
+        if (typeof likedStories === "string") {
+            likedStories = JSON.parse(likedStories);
+        }
+
+        // **确保 `likedStories` 是数组**
+        if (!Array.isArray(likedStories)) {
+            console.warn("⚠️ likedStories 不是数组，返回空数组");
+            likedStories = [];
+        }
+
+        return likedStories;
     }
 }

@@ -5,6 +5,7 @@ import { UserService } from "../services/userService";
 import { ReplyService } from "../services/replyService";
 import { ethers } from "ethers";
 import { generateJWT, recoverETHAddress, verifyJWT, verifySuiSignature } from "../utils/jwtUtils";
+import { getStoryById } from "../database/storyDB";
 
 class Player extends Schema {
   @type("string")
@@ -35,12 +36,15 @@ export class TavernRoom extends Room<TavernState> {
     this.onMessage("sendWhiskey", this.handleSendWhiskey.bind(this));
     this.onMessage("getWhiskeyPoints", this.handleGetWhiskeyPoints.bind(this));
     this.onMessage("updateWhiskeyPoints", this.handleUpdateWhiskeyPoints.bind(this));
+    this.onMessage("getIntimacy", this.handleGetIntimacy.bind(this));
+    this.onMessage("updateIntimacy", this.handleUpdateIntimacy.bind(this));
     this.onMessage("replyStory", this.handleReplyStory.bind(this));
     this.onMessage("replyUser", this.handleReply.bind(this));
+    this.onMessage("getRepliesByStoryId", this.handleGetRepliesByStoryId.bind(this));
     this.onMessage("getNewReply", this.handleGetNewReply.bind(this));
     this.onMessage("markRepliesRead", this.handleMarkRepliesRead.bind(this));
     this.onMessage("markRepliesUnread", this.handleMarkRepliesUnread.bind(this));
-    this.onMessage("getLikedStories", this.handleGetLikedStories.bind(this));
+    this.onMessage("getRecvStories", this.handleGetRecvStories.bind(this));
     this.onMessage("markLikedStory", this.handleMarkLikedStory.bind(this));
   }
 
@@ -232,10 +236,10 @@ export class TavernRoom extends Room<TavernState> {
   /**
    * 处理赠送威士忌请求
    */
-  async handleSendWhiskey(client: Client, storyId: string) {
+  async handleSendWhiskey(client: Client, data: any) {
     const fromAddress = this.authenticate(client);  // 调用认证函数
     if (!fromAddress) return;  // 如果认证失败，函数会返回 null 并已经向客户端发送错误
-
+    const { storyId } = data;
     try {
       await StoryService.sendWhiskey(fromAddress, storyId);
       client.send("whiskeySent", { success: true });
@@ -262,14 +266,45 @@ export class TavernRoom extends Room<TavernState> {
   /**
    * 处理更新积分请求
    */
-  async handleUpdateWhiskeyPoints(client: Client, newPoints: number) {
+  async handleUpdateWhiskeyPoints(client: Client, data: any) {
     const address = this.authenticate(client);  // 调用认证函数
     if (!address) return;
+    const { newPoints } = data;
     try {
       await UserService.updateWhiskeyPoints(address, newPoints);
       client.send("updateWhiskeyPointsResponse", { success: true, newPoints });
     } catch (error: any) {
       client.send("updateWhiskeyPointsResponse", { success: false, reason: error.message });
+    }
+  }
+
+  /**
+   * 处理读取亲密度请求
+   */
+  async handleGetIntimacy(client: Client) {
+    const address = this.authenticate(client);  // 调用认证函数
+    if (!address) return;  // 如果认证失败，函数会返回 null 并已经向客户端发送错误
+
+    try {
+      const points = UserService.getIntimacy(address);
+      client.send("getIntimacyResponse", { success: true, points });
+    } catch (error: any) {
+      client.send("getIntimacyResponse", { success: false, reason: error.message });
+    }
+  }
+
+  /**
+   * 处理更新亲密度请求
+   */
+  async handleUpdateIntimacy(client: Client, data: any) {
+    const address = this.authenticate(client);  // 调用认证函数
+    if (!address) return;
+    const { newIntimacy } = data;
+    try {
+      await UserService.updateIntimacy(address, newIntimacy);
+      client.send("updateIntimacyResponse", { success: true, newIntimacy });
+    } catch (error: any) {
+      client.send("updateIntimacyResponse", { success: false, reason: error.message });
     }
   }
 
@@ -306,6 +341,24 @@ export class TavernRoom extends Room<TavernState> {
       client.send("replyUserResponse", { success: true, reply });
     } catch (error: any) {
       client.send("replyUserResponse", { success: false, reason: error.message });
+    }
+  }
+
+  /**
+   * 根据StoryId获取聊天历史
+   * @param client 
+   * @param storyId 
+   */
+  async handleGetRepliesByStoryId(client: Client, data: any) {
+    const address = this.authenticate(client);  // 调用认证函数
+    if (!address) return;  // 如果认证失败，函数会返回 null 并已经向客户端发送错误
+    const { storyId } = data;
+    try {
+      console.log("storyId: ", storyId);
+      const replies = await ReplyService.getRepliesForStoryByUser(address, Number(storyId));
+      client.send("getRepliesResponse", { success: true, replies })
+    } catch (error: any) {
+      client.send("getRepliesResponse", { success: false, reason: error.message });
     }
   }
 
@@ -360,25 +413,32 @@ export class TavernRoom extends Room<TavernState> {
 
 
   /***
-   * 获取收藏故事列表
+   * 获取收到故事列表
    */
-  async handleGetLikedStories(client: Client) {
+  async handleGetRecvStories(client: Client) {
     const address = this.authenticate(client);  // 调用认证函数
     if (!address) return;
     try {
+      await StoryService.getDailyStories(address);
       const likedStories = await UserService.getLikedStories(address);
-      client.send("getLikedStoriesResponse", { success: true, likedStories });
+      const recvStories = await Promise.all(
+        likedStories.map(async (storyId: string) => {
+          return await getStoryById(storyId);
+        })
+      );
+      client.send("getRecvStoriesResponse", { success: true, recvStories });
     } catch (error: any) {
-      client.send("getLikedStoriesResponse", { success: false, reason: error.message });
+      client.send("getRecvStoriesResponse", { success: false, reason: error.message });
     }
   }
 
   /***
    * 处理收藏请求
    */
-  async handleMarkLikedStory(client: Client, storyId: string) {
+  async handleMarkLikedStory(client: Client, data: any) {
     const address = this.authenticate(client);  // 调用认证函数
     if (!address) return;
+    const { storyId } = data;
     try {
       await StoryService.markLikedStory(address, storyId);
       client.send("markLikedStoryResponse", { success: true });
