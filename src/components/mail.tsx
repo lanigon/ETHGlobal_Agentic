@@ -85,6 +85,9 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [isMyStories, setIsMyStories] = useState(false);
   const [replyGroups, setReplyGroups] = useState<{ [key: string]: Reply[] }>({});
+  const [recipient, setRecipient] = useState<string>("");
+
+  const [approveAmount, setApproveAmount] = useState(0)
   const {address} = useAccount()
   const {writeContract} = useWriteContract()
 
@@ -95,20 +98,58 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
     args: [address]
   })
 
+  const [isSending, setIsSending] = useState(false);
+  const [claimStatus, setClaimStatus] = useState<string>("");
+
   const sendCoin = async () => {
-    writeContract({
-      address: transferAddress,
-      abi: transferAbi,
-      functionName: "transfer",
-      args: [address, address, 100]
-    })
+    if (!approveAmount || isSending) return;
+    
+    setIsSending(true);
+    try {
+        // 先批准代币
+        await writeContract({
+            address: payAddress,
+            abi: payAbi,
+            functionName: "approve",
+            args: [transferAddress, approveAmount]
+        });
+        
+        // 发送代币
+        await writeContract({
+            address: transferAddress,
+            abi: transferAbi,
+            functionName: "deposit",
+            args: [recipient, approveAmount]
+        });
+        
+        console.log("Coin sent successfully");
+        setApproveAmount(0); // 清空输入框
+    } catch (error) {
+        console.error("Failed to send coin:", error);
+    } finally {
+        setIsSending(false);
+    }
   }
-  const claimCoin = async () => {
-    if (!address) return
-    writeContract({
-      
-    })
+
+  const claimCoin = async (id: number) => {
+    if (!address) return;
+    setClaimStatus("Claiming...");
+    try {
+        await writeContract({
+            address: transferAddress,
+            abi: transferAbi,
+            functionName: "withdraw",
+            args: [id]
+        });
+        setClaimStatus("Claim successful!");
+        setTimeout(() => setClaimStatus(""), 3000);
+    } catch (error) {
+        setClaimStatus("Claim failed");
+        console.error(error);
+        setTimeout(() => setClaimStatus(""), 3000);
+    }
   }
+
 
   const fetchStories = async (isMyStoriesView: boolean) => {
     setLoading(true);
@@ -175,7 +216,8 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
         if (success) {
             setReplyText('');
             console.log('Reply sent successfully');
-            // Refresh replies
+            
+            // 更新回复列表
             const newReplies = await ColyseusClient.getRepliesForStory(selectedStory.id);
             if (isMyStories) {
                 setReplyGroups(newReplies);
@@ -213,23 +255,22 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const handleStorySelect = async (story: Story) => {
     console.log("Selected story:", story);
     setSelectedStory(story);
+    setRecipient(story.author_address);
+    
     try {
         const replyData = await ColyseusClient.getRepliesForStory(story.id);
         console.log("Fetched replies:", replyData);
         
         if (isMyStories) {
-            // For My Stories: keep the grouped structure
             setReplyGroups(replyData);
-            setReplies([]); // Clear flat replies list
+            setReplies([]);
         } else {
-            // For Bar Stories: flatten all replies into a single array
             const allReplies = Object.values(replyData).flat();
-            // Sort replies by date if needed
             const sortedReplies = allReplies.sort((a, b) => 
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             );
             setReplies(sortedReplies);
-            setReplyGroups({}); // Clear grouped replies
+            setReplyGroups({});
         }
     } catch (error) {
         console.error("Failed to fetch replies:", error);
@@ -450,28 +491,52 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                               </div>
                               {/* Add Action Buttons */}
                               <div className="flex justify-end gap-2 mt-4">
+                                {/* 代币操作区域 */}
+                                <div className="flex items-center gap-2 mr-4">
+                                    <input
+                                        type="number"
+                                        value={approveAmount}
+                                        onChange={(e) => setApproveAmount(Number(e.target.value))}
+                                        className="w-24 bg-[#2A2A2F] border-2 border-[#4A4A4F] px-2 py-1
+                                                text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
+                                                focus:outline-none focus:border-[#4EEAFF]/50"
+                                        placeholder="Amount"
+                                        min="0"
+                                    />
+                                    <button
+                                        onClick={sendCoin}
+                                        disabled={isSending || !approveAmount}
+                                        className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
+                                                text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
+                                                font-pixel text-sm pixel-corners flex items-center gap-1"
+                                    >
+                                        {isSending ? "Sending..." : "Send"}
+                                    </button>
+                                </div>
+
+                                {/* 简化后的 Claim 按钮 */}
                                 <button
-                                  onClick={() => {
-                                    // Handle claim
-                                  }}
-                                  className="px-3 py-1 bg-[#FFD700] border-2 border-[#B8860B] 
+                                    onClick={() => claimCoin(0)} // 根据实际合约调整参数
+                                    className="px-3 py-1 bg-[#FFD700] border-2 border-[#B8860B] 
                                             text-[#8B4513] hover:bg-[#FFC125] transition-colors
                                             font-pixel text-sm pixel-corners flex items-center gap-1"
                                 >
-                                  <div className="w-4 h-4 relative">
-                                    <div className="absolute inset-0 rounded-full bg-[#FFD700] border-2 border-[#B8860B]" />
-                                    <div className="absolute inset-[25%] text-[8px] font-bold text-[#B8860B]">$</div>
-                                  </div>
-                                  Claim
+                                    <div className="w-4 h-4 relative">
+                                        <div className="absolute inset-0 rounded-full bg-[#FFD700] border-2 border-[#B8860B]" />
+                                        <div className="absolute inset-[25%] text-[8px] font-bold text-[#B8860B]">$</div>
+                                    </div>
+                                    Claim
                                 </button>
+
+                                {/* 原有的 Like 按钮保持不变 */}
                                 <button
-                                  onClick={handleSendWhiskey}
-                                  className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
+                                    onClick={handleSendWhiskey}
+                                    className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
                                             text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
                                             font-pixel text-sm pixel-corners flex items-center gap-1"
                                 >
-                                  <span className="text-lg">🥃</span>
-                                  Like
+                                    <span className="text-lg">🥃</span>
+                                    Like
                                 </button>
                               </div>
                             </div>
@@ -607,6 +672,22 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
+                        </div>
+                    )}
+
+                    {/* 在 UI 中显示接收者信息 */}
+                    {selectedStory && (
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-[#4EEAFF]">
+                                To: {recipient.slice(0, 6)}...{recipient.slice(-4)}
+                            </h3>
+                        </div>
+                    )}
+
+                    {/* 在 UI 中添加状态提示 */}
+                    {claimStatus && (
+                        <div className="text-sm text-[#4EEAFF]">
+                            {claimStatus}
                         </div>
                     )}
                   </div>

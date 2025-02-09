@@ -777,6 +777,6 @@ export const payAbi = [
 			}
 ]
 		
-export const payAddress = "0xd930Ec735612988B820368E9fb6Ef26759777F0C"				
+export const payAddress = "0xd930Ec735612988B820368E9fb6Ef26759777F0C"			//erc20合约	
 
-export const transferAddress = "0xf6771010F62E1f5EE3A54fd39db72c5C6C5ccf4"
+export const transferAddress = "0xf6771010F62E1f5EE3A54fd39db72c5C6C5ccf4" //中转合约

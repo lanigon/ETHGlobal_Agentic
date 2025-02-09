@@ -76,7 +76,7 @@ export class BarmanInteraction {
         this.chatWindow.show();
         // Initial greeting message in English
         this.chatWindow.addMessage(
-            "Welcome to Web3 Tavern! I'm the bartender here, how can I help you today?",
+            "Welcome to Beforelife bar! I'm the bartender here, how can I help you today?",
             "barman"
         );
     }
