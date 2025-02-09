@@ -57,7 +57,7 @@ export default class DriftBottleScene extends Phaser.Scene {
   }
 
   private creactBack() {
-    const backButton = this.add.image(this.scale.width- 10, this.bgLocation.y, 'back')
+    const backButton = this.add.image(this.scale.width/2, this.bgLocation.y, 'back')
     .setScale(3)
     .setInteractive()
     .setOrigin(1, 0)

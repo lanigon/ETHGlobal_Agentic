@@ -43,16 +43,16 @@ class ColyseusClient {
 
     public async joinRoom(walletAddress: string): Promise<Room> {
         if (this.room) {
-            console.warn("⚠️ 已经连接到房间:", this.room.id);
+            console.warn("⚠️ Already connected to room:", this.room.id);
             return this.room;
         }
 
         try {
-            console.log("🎮 正在连接 Colyseus 服务器...");
+            console.log("🎮 Connecting to Colyseus server...");
             this.room = await this.client.joinOrCreate("tavern_room", {
                 walletAddress,
             });
-            
+
             // Add connection state listener
             this.room.onStateChange((state) => {
                 console.log("Room state changed:", state);
@@ -67,10 +67,12 @@ class ColyseusClient {
                 console.error("Room error:", code, message);
             });
 
-            console.log(`✅ 成功加入房间: ${this.room.id}, sessionId: ${this.room.sessionId}`);
+            console.log(
+                `✅ Successfully joined room: ${this.room.id}, sessionId: ${this.room.sessionId}`
+            );
             return this.room;
         } catch (error) {
-            console.error("❌ 连接 Colyseus 失败:", error);
+            console.error("❌ Failed to connect to Colyseus:", error);
             throw error;
         }
     }
@@ -78,18 +80,22 @@ class ColyseusClient {
     // Story-related methods
     public async getAllStories(): Promise<Story[]> {
         if (!this.room) {
-            console.error("⚠️ 尚未加入房间，无法获取故事");
+            console.error("⚠️ Not connected to room, cannot fetch stories");
             return [];
         }
 
         try {
             this.sendMessage("getRecvStories", {});
-            console.log("📜 正在获取所有故事...");
+            console.log("📜 Fetching all stories...");
 
-            const response = await new Promise<{ success: boolean; recvStories: Story[]; reason?: string }>((resolve) => {
+            const response = await new Promise<{
+                success: boolean;
+                recvStories: Story[];
+                reason?: string;
+            }>((resolve) => {
                 this.onMessage("getRecvStoriesResponse", (data) => {
                     resolve(data);
-                    console.log("📜 收到故事列表:", data);
+                    console.log("📜 Received stories list:", data);
                 });
             });
 
@@ -98,25 +104,29 @@ class ColyseusClient {
             }
             return [];
         } catch (error) {
-            console.error("❌ 获取故事失败:", error);
+            console.error("❌ Failed to fetch stories:", error);
             return [];
         }
     }
 
     public async getMyStories(): Promise<Story[]> {
         if (!this.room) {
-            console.error("⚠️ 尚未加入房间，无法获取故事");
+            console.error("⚠️ Not connected to room, cannot fetch stories");
             return [];
         }
 
         try {
             this.sendMessage("getAllStory", {});
-            console.log("正在获取我的故事列表...");
+            console.log("Fetching my stories list...");
 
-            const response = await new Promise<{ success: boolean; stories: Story[]; reason?: string }>((resolve) => {
+            const response = await new Promise<{
+                success: boolean;
+                stories: Story[];
+                reason?: string;
+            }>((resolve) => {
                 this.onMessage("getAllStoryResponse", (data) => {
                     resolve(data);
-                    console.log("📜 我的故事列表:", data);
+                    console.log("📜 My stories list:", data);
                 });
             });
 
@@ -125,50 +135,57 @@ class ColyseusClient {
             }
             return [];
         } catch (error) {
-            console.error("❌ 获取我的故事失败:", error);
+            console.error("❌ Failed to fetch my stories:", error);
             return [];
         }
     }
 
     public async createStory(title: string, content: string): Promise<boolean> {
         if (!this.room) {
-            console.error("⚠️ 尚未加入房间，无法创建故事");
+            console.error("⚠️ Not connected to room, cannot create story");
             return false;
         }
 
         try {
             console.log("Current room sessionId:", this.room.sessionId);
 
-            this.sendMessage("publishStory", { 
+            this.sendMessage("publishStory", {
                 title: title,
-                storyText: content
+                storyText: content,
             });
-            console.log("📝 正在创建新故事...");
+            console.log("📝 Creating new story...");
 
-            const response = await new Promise<{ success: boolean; story: any; reason?: string }>((resolve) => {
+            const response = await new Promise<{
+                success: boolean;
+                story: any;
+                reason?: string;
+            }>((resolve) => {
                 this.onMessage("storyPublishedResponse", (data) => {
                     resolve(data);
-                    console.log("📜 故事创建结果:", data);
+                    console.log("📜 Story creation result:", data);
                 });
             });
 
             if (response.success) {
                 setTimeout(async () => {
                     const myStories = await this.getMyStories();
-                    console.log("📚 发布后的故事列表:", myStories);
+                    console.log("📚 Stories list after publishing:", myStories);
                 }, 1000);
                 return true;
             } else {
-                console.error("❌ 创建故事失败:", response.reason);
+                console.error("❌ Failed to create story:", response.reason);
                 return false;
             }
         } catch (error) {
-            console.error("❌ 创建故事失败:", error);
+            console.error("❌ Failed to create story:", error);
             return false;
         }
     }
 
-    public async replyToStory(storyId: number, content: string): Promise<boolean> {
+    public async replyToStory(
+        storyId: number,
+        content: string
+    ): Promise<boolean> {
         if (!this.room) {
             console.error("⚠️ 尚未加入房间，无法回复故事");
             return false;
@@ -178,15 +195,18 @@ class ColyseusClient {
             // Log the message being sent
             console.log("Sending reply:", {
                 storyId: storyId.toString(),
-                replyText: content
+                replyText: content,
             });
 
-            this.sendMessage("replyStory", { 
+            this.sendMessage("replyStory", {
                 storyId: storyId.toString(),
-                replyText: content
+                replyText: content,
             });
 
-            const response = await new Promise<{ success: boolean; reason?: string }>((resolve, reject) => {
+            const response = await new Promise<{
+                success: boolean;
+                reason?: string;
+            }>((resolve, reject) => {
                 const timeoutId = setTimeout(() => {
                     reject(new Error("Reply timeout after 5s"));
                 }, 5000);
@@ -217,7 +237,7 @@ class ColyseusClient {
             console.log("sendMessage:", action, data);
             this.room.send(action, data);
         } else {
-            console.error("⚠️ 尚未加入房间，无法发送消息");
+            console.error("⚠️ Not connected to room, cannot send message");
         }
     }
 
@@ -225,34 +245,42 @@ class ColyseusClient {
         if (this.room) {
             this.room.onMessage(action, callback);
         } else {
-            console.error("⚠️ 尚未加入房间，无法监听消息");
+            console.error(
+                "⚠️ Not connected to room, cannot listen for messages"
+            );
         }
     }
 
     public leaveRoom() {
         if (this.room) {
-            console.log(`❌ 断开 Colyseus 连接: ${this.room.id}`);
+            console.log(`❌ Disconnecting from Colyseus: ${this.room.id}`);
             this.room.leave();
             this.room = null;
         }
     }
 
-    public async getRepliesForStory(storyId: number): Promise<{ [key: string]: Reply[] }> {
+    public async getRepliesForStory(
+        storyId: number
+    ): Promise<{ [key: string]: Reply[] }> {
         if (!this.room) {
-            console.error("⚠️ 尚未加入房间，无法获取回复");
+            console.error("⚠️ Not connected to room, cannot fetch replies");
             return {};
         }
 
         try {
             this.sendMessage("getRepliesByStoryId", {
-                storyId: storyId.toString()
+                storyId: storyId.toString(),
             });
-            console.log("💬 正在获取故事回复...");
+            console.log("💬 Fetching story replies...");
 
-            const response = await new Promise<{ success: boolean; replies: { [key: string]: Reply[] }; reason?: string }>((resolve) => {
+            const response = await new Promise<{
+                success: boolean;
+                replies: { [key: string]: Reply[] };
+                reason?: string;
+            }>((resolve) => {
                 this.onMessage("getRepliesResponse", (data) => {
                     resolve(data);
-                    console.log("💬 收到回复列表:", data);
+                    console.log("💬 Received replies list:", data);
                 });
             });
 
@@ -261,33 +289,36 @@ class ColyseusClient {
             }
             return {};
         } catch (error) {
-            console.error("❌ 获取回复失败:", error);
+            console.error("❌ Failed to fetch replies:", error);
             return {};
         }
     }
 
     public async sendWhiskey(storyId: number): Promise<boolean> {
         if (!this.room) {
-            console.error("⚠️ 尚未加入房间，无法发送Whiskey");
+            console.error("⚠️ Not connected to room, cannot send Whiskey");
             return false;
         }
 
         try {
-            this.sendMessage("sendWhiskey", { 
-                storyId: storyId.toString()
+            this.sendMessage("sendWhiskey", {
+                storyId: storyId.toString(),
             });
-            console.log("🥃 正在发送Whiskey...");
+            console.log("🥃 Sending Whiskey...");
 
-            const response = await new Promise<{ success: boolean; reason?: string }>((resolve) => {
+            const response = await new Promise<{
+                success: boolean;
+                reason?: string;
+            }>((resolve) => {
                 this.onMessage("whiskeySent", (data) => {
                     resolve(data);
-                    console.log("🥃 发送Whiskey结果:", data);
+                    console.log("🥃 Whiskey sending result:", data);
                 });
             });
 
             return response.success;
         } catch (error) {
-            console.error("❌ 发送Whiskey失败:", error);
+            console.error("❌ Failed to send Whiskey:", error);
             return false;
         }
     }

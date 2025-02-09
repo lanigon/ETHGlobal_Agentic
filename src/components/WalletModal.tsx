@@ -11,7 +11,7 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
     const [ethAddress, setEthAddress] = useState<string | null>(null);
     const [error, setError] = useState<string>("");
 
-    // Connect MetaMask
+    // 连接 MetaMask
     const handleConnectMetaMask = async () => {
         if (!window.ethereum) {
             setError("❌ Please install MetaMask!");
@@ -29,7 +29,7 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
         }
     };
 
-    // Disconnect wallet
+    // 断开连接
     const handleDisconnect = () => {
         setEthAddress(null);
         console.log("❌ MetaMask disconnected");
@@ -43,73 +43,69 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                 left: 0,
                 width: "100%",
                 height: "100%",
-                background: "rgba(0, 0, 0, 0.85)",
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                zIndex: 1000,
-                backdropFilter: "blur(10px)",
+                zIndex: "1000",
             }}
         >
             <div
                 style={{
-                    background: "rgba(20, 20, 20, 0.95)",
-                    padding: "30px",
-                    borderRadius: "12px",
-                    boxShadow: "0 0 10px rgba(0, 255, 255, 0.7)",
-                    textAlign: "center",
-                    width: "400px",
-                    border: "2px solid rgba(0, 255, 255, 0.5)",
+                    backgroundColor: "#1E1B2D",
+                    padding: "24px",
+                    borderRadius: "10px",
+                    border: "2px solid #4EEAFF",
+                    width: "300px",
                 }}
             >
                 <h2
                     style={{
-                        fontSize: "22px",
-                        fontWeight: "bold",
-                        marginBottom: "15px",
-                        color: "#0ff",
-                        textShadow: "0 0 10px #0ff",
+                        color: "#4EEAFF",
+                        textAlign: "center",
+                        marginBottom: "20px",
+                        textShadow: "0 0 10px #4EEAFF",
                     }}
                 >
                     🔮 Select Wallet
                 </h2>
 
-                {/* Connect MetaMask Button */}
+                {/* 连接 MetaMask */}
                 <button
                     onClick={handleConnectMetaMask}
                     style={{
                         width: "100%",
                         padding: "12px",
-                        border: ethAddress ? "2px solid #0f0" : "2px solid #ff0090",
-                        backgroundColor: ethAddress ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 0, 144, 0.2)",
-                        color: ethAddress ? "#0f0" : "#ff0090",
+                        backgroundColor: "rgba(0, 255, 255, 0.1)",
+                        color: "#0ff",
+                        border: "2px solid #0ff",
+                        borderRadius: "5px",
+                        cursor: "pointer",
                         fontSize: "16px",
                         fontWeight: "bold",
-                        cursor: "pointer",
-                        borderRadius: "8px",
-                        textShadow: ethAddress ? "0 0 5px #0f0" : "0 0 5px #ff0090",
+                        textShadow: "0 0 8px #0ff",
                         transition: "all 0.3s ease",
-                        marginBottom: "10px",
                     }}
                 >
                     {ethAddress ? `✅ Connected ${ethAddress.slice(0, 6)}...` : "Connect MetaMask"}
                 </button>
 
-                {/* Disconnect Button */}
+                {/* 断开连接按钮 */}
                 {ethAddress && (
                     <button
                         onClick={handleDisconnect}
                         style={{
+                            marginTop: "10px",
                             width: "100%",
-                            padding: "8px",
-                            border: "2px solid #ff4500",
-                            backgroundColor: "rgba(255, 69, 0, 0.2)",
-                            color: "#ff4500",
-                            fontSize: "14px",
-                            fontWeight: "bold",
-                            cursor: "pointer",
+                            padding: "12px",
+                            backgroundColor: "rgba(255, 0, 0, 0.1)",
+                            color: "#ff4444",
+                            border: "2px solid #ff4444",
                             borderRadius: "5px",
-                            textShadow: "0 0 5px #ff4500",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                            textShadow: "0 0 8px #ff4444",
                             transition: "all 0.3s ease",
                         }}
                     >
@@ -117,7 +113,7 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                     </button>
                 )}
 
-                {/* Enter Game Button */}
+                {/* 进入游戏按钮 */}
                 <button
                     onClick={() => {
                         if (ethAddress) {
@@ -144,7 +140,7 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                     🎮 Enter Game
                 </button>
 
-                {/* Error Message */}
+                {/* 错误信息 */}
                 {error && (
                     <p
                         style={{

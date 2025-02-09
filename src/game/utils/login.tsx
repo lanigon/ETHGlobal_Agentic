@@ -27,7 +27,7 @@ export function ReactPhaserBridge() {
       try {
         setIsModalOpen(true);
       } catch (error) {
-        console.error("打开钱包选择失败:", error);
+        console.error("Failed to open wallet selector:", error);
       }
     };
 
@@ -40,23 +40,23 @@ export function ReactPhaserBridge() {
 
   const handleGameStart = async () => {
     if (!window.ethereum) {
-      console.error("❌ MetaMask 未安装！");
-      alert("请安装 MetaMask！");
+      console.error("❌ MetaMask not installed!");
+      alert("Please install MetaMask!");
       return;
     }
 
     try {
-      // 连接 MetaMask
+      // Connect MetaMask
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
       setEthAddress(address);
 
-      console.log("🎮 连接 Colyseus，钱包地址:", address);
+      console.log("🎮 Connecting to Colyseus, wallet address:", address);
       const room = await ColyseusClient.joinRoom(address);
       ColyseusClient.sendMessage("userLogin", { address });
 
-      // ✅ 等待服务器的 `loginChallenge`
+      // ✅ Wait for server's `loginChallenge`
       const loginChallenge = await new Promise<{ challenge: string }>((resolve, reject) => {
         room.onMessage("loginChallenge", (data) => {
           if (data.challenge) {
@@ -66,30 +66,30 @@ export function ReactPhaserBridge() {
           }
         });
 
-        setTimeout(() => reject(new Error("⏳ Challenge out of time")), 5000);
+        setTimeout(() => reject(new Error("⏳ Challenge timeout")), 5000);
       });
 
       console.log("Challenge:", loginChallenge.challenge);
 
-      // ✅ 使用 MetaMask 进行签名
+      // ✅ Sign with MetaMask
       const signature = await signer.signMessage(loginChallenge.challenge);
 
       console.log("Signature:", signature);
 
-      // ✅ 发送签名到后端
+      // ✅ Send signature to backend
       ColyseusClient.sendMessage("loginSignature", {
         address,
         signature,
         challenge: loginChallenge.challenge,
       });
 
-      // ✅ 等待后端返回登录状态
+      // ✅ Wait for login response
       const loginResponse = await new Promise<{ success: boolean; token?: string; reason?: string }>((resolve, reject) => {
         room.onMessage("loginResponse", (data) => {
           resolve(data);
         });
 
-        setTimeout(() => reject(new Error("loginResponse timeout")), 5000);
+        setTimeout(() => reject(new Error("Login response timeout")), 5000);
       });
 
       console.log("loginResponse:", loginResponse);
@@ -104,12 +104,12 @@ export function ReactPhaserBridge() {
           },
         });
 
-        setIsModalOpen(false); // 关闭钱包选择弹窗
+        setIsModalOpen(false); // Close wallet selector modal
       } else {
-        console.error("❌ 登录失败:", loginResponse.reason);
+        console.error("❌ Login failed:", loginResponse.reason);
       }
     } catch (error) {
-      console.error("❌ 进入游戏失败:", error);
+      console.error("❌ Failed to enter game:", error);
     }
   };
 

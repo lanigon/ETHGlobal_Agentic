@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { createPublicClient } from 'viem'
 import { WagmiProvider } from 'wagmi'
 import { http, createConfig } from 'wagmi'
 import { mainnet, sepolia } from 'wagmi/chains'
@@ -17,3 +18,8 @@ export function Wagmi({children}: {children: ReactNode}) {
     </WagmiProvider>
   )
 }
+
+export const publicClient = createPublicClient({
+  chain: sepolia,
+  transport: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+})
