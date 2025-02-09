@@ -1,6 +1,6 @@
 import { Client, Room } from "colyseus.js";
 
-const COLYSEUS_SERVER = "ws://47.236.128.7:2568";
+const COLYSEUS_SERVER = "wss://47.236.128.7:2568";
 //const COLYSEUS_SERVER = "ws://localhost:2568";
 
 export interface Story {

@@ -112,7 +112,7 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
             address: payAddress,
             abi: payAbi,
             functionName: "approve",
-            args: [transferAddress, approveAmount]
+            args: [transferAddress, approveAmount*10**18]
         });
         
         // 发送代币
@@ -120,7 +120,7 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
             address: transferAddress,
             abi: transferAbi,
             functionName: "deposit",
-            args: [recipient, approveAmount]
+            args: [recipient, approveAmount*10**18]
         });
         
         console.log(id);
