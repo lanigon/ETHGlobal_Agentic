@@ -426,6 +426,7 @@ export class TavernRoom extends Room<TavernState> {
           return await getStoryById(storyId);
         })
       );
+      console.log("recvStories:", recvStories)
       client.send("getRecvStoriesResponse", { success: true, recvStories });
     } catch (error: any) {
       client.send("getRecvStoriesResponse", { success: false, reason: error.message });
