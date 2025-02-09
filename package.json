@@ -7,6 +7,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0",
     "adm-zip": "^0.4.16",
     "agent-base": "^6.0.2",
     "aggregate-error": "^3.1.0",
