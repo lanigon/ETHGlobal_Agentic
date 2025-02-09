@@ -12,7 +12,6 @@ export default class DriftBottleScene extends Phaser.Scene {
 
   private gridSize!: number;
 
-
   private currentTween?: Phaser.Tweens.Tween;
 
   private isBottleUIVisible = true;

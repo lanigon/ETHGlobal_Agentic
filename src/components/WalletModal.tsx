@@ -11,10 +11,10 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
     const [ethAddress, setEthAddress] = useState<string | null>(null);
     const [error, setError] = useState<string>("");
 
-    // 连接 MetaMask
+    // Connect MetaMask
     const handleConnectMetaMask = async () => {
         if (!window.ethereum) {
-            setError("❌ 请安装 MetaMask！");
+            setError("❌ Please install MetaMask!");
             return;
         }
         try {
@@ -22,17 +22,17 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
             const signer = await provider.getSigner();
             const address = await signer.getAddress();
             setEthAddress(address);
-            console.log("✅ MetaMask 已连接，地址:", address);
+            console.log("✅ MetaMask connected, address:", address);
         } catch (err) {
-            setError("❌ 连接 MetaMask 失败！");
+            setError("❌ Failed to connect MetaMask!");
             console.error(err);
         }
     };
 
-    // 断开连接
+    // Disconnect wallet
     const handleDisconnect = () => {
         setEthAddress(null);
-        console.log("❌ MetaMask 已断开连接");
+        console.log("❌ MetaMask disconnected");
     };
 
     return (
@@ -71,10 +71,10 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                         textShadow: "0 0 10px #0ff",
                     }}
                 >
-                    🔮 选择钱包
+                    🔮 Select Wallet
                 </h2>
 
-                {/* 连接 MetaMask */}
+                {/* Connect MetaMask Button */}
                 <button
                     onClick={handleConnectMetaMask}
                     style={{
@@ -92,10 +92,10 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                         marginBottom: "10px",
                     }}
                 >
-                    {ethAddress ? `✅ 已连接 ${ethAddress.slice(0, 6)}...` : "连接 MetaMask"}
+                    {ethAddress ? `✅ Connected ${ethAddress.slice(0, 6)}...` : "Connect MetaMask"}
                 </button>
 
-                {/* 断开连接按钮 */}
+                {/* Disconnect Button */}
                 {ethAddress && (
                     <button
                         onClick={handleDisconnect}
@@ -113,11 +113,11 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                             transition: "all 0.3s ease",
                         }}
                     >
-                        ❌ 断开连接
+                        ❌ Disconnect
                     </button>
                 )}
 
-                {/* 进入游戏按钮 */}
+                {/* Enter Game Button */}
                 <button
                     onClick={() => {
                         if (ethAddress) {
@@ -141,10 +141,10 @@ export function WalletModal({ onClose, onGameStart }: WalletModalProps) {
                         transition: "all 0.3s ease",
                     }}
                 >
-                    🎮 进入游戏
+                    🎮 Enter Game
                 </button>
 
-                {/* 错误信息 */}
+                {/* Error Message */}
                 {error && (
                     <p
                         style={{

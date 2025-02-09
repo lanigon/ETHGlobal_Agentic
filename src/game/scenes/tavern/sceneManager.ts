@@ -73,11 +73,6 @@ export class SceneManager {
 
     private createObstacles() {
         this.obstrucleGroup = this.scene.physics.add.staticGroup();
-        const tableSprite = this.obstrucleGroup.create(
-            13 * this.gridSize,
-            8 * this.gridSize,
-            "logo"
-        ) as Phaser.Physics.Arcade.Sprite;
 
         for (const obstacle of staticObstacles) {
             // debugger;
@@ -88,15 +83,15 @@ export class SceneManager {
             }
         }
 
-        this.drawGrid();
+        //this.drawGrid();
     }
 
     private createCharacters() {
         // 创建玩家
         this.player = new Player(
             this.scene,
-            2 * this.gridSize,
-            10 * this.gridSize,
+            20 * this.gridSize,
+            4 * this.gridSize,
             "player"
         );
         this.cursors = this.scene.input.keyboard!.createCursorKeys();
@@ -108,8 +103,8 @@ export class SceneManager {
         // 创建酒保
         this.barman = new Barman(
             this.scene,
-            5 * this.gridSize,
-            4 * this.gridSize,
+            11 * this.gridSize,
+            6 * this.gridSize,
             "barman"
         );
         this.barman.sprite.setInteractive();
