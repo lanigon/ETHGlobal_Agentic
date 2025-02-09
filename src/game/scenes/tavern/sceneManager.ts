@@ -38,7 +38,7 @@ export class SceneManager {
 
     private createDriftBottleButton() {
         const driftbottleButton = this.scene.add
-            .image(this.scene.scale.width/2-100, 200, "driftbottle")
+            .image(this.scene.scale.width/2-88, 200, "driftbottle")
             .setScale(0.5)
             .setInteractive()
             .setOrigin(0)
