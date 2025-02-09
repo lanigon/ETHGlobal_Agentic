@@ -28,7 +28,6 @@
         "build-nolog": "next build"
     },
     "dependencies": {
-        "@mysten/dapp-kit": "^0.14.49",
         "@noble/ed25519": "^2.2.3",
         "@noble/hashes": "^1.7.1",
         "@privy-io/react-auth": "^2.0.4",
@@ -40,8 +39,6 @@
         "@radix-ui/react-slot": "^1.1.1",
         "@tanstack/react-query": "^5.64.2",
         "@types/jsonwebtoken": "^9.0.7",
-        "@worldcoin/minikit-js": "^1.4.0",
-        "@worldcoin/minikit-react": "^1.4.0",
         "axios": "^1.7.8",
         "base64-arraybuffer": "^1.0.2",
         "class-variance-authority": "^0.7.1",

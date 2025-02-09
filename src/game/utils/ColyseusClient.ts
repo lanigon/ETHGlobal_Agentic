@@ -11,10 +11,24 @@ export interface Story {
     created_at: Date;
 }
 
+export interface Reply {
+    id: number;
+    story_id: number;
+    parent_reply_id: number;
+    author_address: string;
+    reply_content: string;
+    created_at: Date;
+}
+
+interface ReplyGroup {
+    address: string;
+    replies: Reply[];
+}
+
 class ColyseusClient {
     private static instance: ColyseusClient;
     private client: Client;
-    private room: Room | null = null;
+    public room: Room | null = null;
 
     private constructor() {
         this.client = new Client(COLYSEUS_SERVER);
@@ -38,6 +52,21 @@ class ColyseusClient {
             this.room = await this.client.joinOrCreate("tavern_room", {
                 walletAddress,
             });
+            
+            // Add connection state listener
+            this.room.onStateChange((state) => {
+                console.log("Room state changed:", state);
+            });
+
+            this.room.onLeave((code) => {
+                console.log("Left room with code:", code);
+                this.room = null;
+            });
+
+            this.room.onError((code, message) => {
+                console.error("Room error:", code, message);
+            });
+
             console.log(`✅ 成功加入房间: ${this.room.id}, sessionId: ${this.room.sessionId}`);
             return this.room;
         } catch (error) {
@@ -54,18 +83,18 @@ class ColyseusClient {
         }
 
         try {
-            this.sendMessage("fetchStory", {});
+            this.sendMessage("getRecvStories", {});
             console.log("📜 正在获取所有故事...");
 
-            const response = await new Promise<{ success: boolean; story: Story; reason?: string }>((resolve) => {
-                this.onMessage("fetchStoriesResult", (data) => {
+            const response = await new Promise<{ success: boolean; recvStories: Story[]; reason?: string }>((resolve) => {
+                this.onMessage("getRecvStoriesResponse", (data) => {
                     resolve(data);
                     console.log("📜 收到故事列表:", data);
                 });
             });
 
-            if (response.success && response.story) {
-                return [response.story];
+            if (response.success && response.recvStories) {
+                return response.recvStories;
             }
             return [];
         } catch (error) {
@@ -82,7 +111,7 @@ class ColyseusClient {
 
         try {
             this.sendMessage("getAllStory", {});
-            console.log("�� 正在获取我的故事列表...");
+            console.log("正在获取我的故事列表...");
 
             const response = await new Promise<{ success: boolean; stories: Story[]; reason?: string }>((resolve) => {
                 this.onMessage("getAllStoryResponse", (data) => {
@@ -108,13 +137,9 @@ class ColyseusClient {
         }
 
         try {
-            // Validate content length (minimum 50 characters)
-            // if (!content || content.length < 50) {
-            //     console.error("❌ 故事内容至少需要50个字符");
-            //     return false;
-            // }
+            console.log("Current room sessionId:", this.room.sessionId);
 
-            this.sendMessage("publishStory", {
+            this.sendMessage("publishStory", { 
                 title: title,
                 storyText: content
             });
@@ -150,11 +175,39 @@ class ColyseusClient {
         }
 
         try {
-            this.sendMessage("replyStory", { storyId, content });
-            console.log("💬 正在发送回复...");
-            return true;
+            // Log the message being sent
+            console.log("Sending reply:", {
+                storyId: storyId.toString(),
+                replyText: content
+            });
+
+            this.sendMessage("replyStory", { 
+                storyId: storyId.toString(),
+                replyText: content
+            });
+
+            const response = await new Promise<{ success: boolean; reason?: string }>((resolve, reject) => {
+                const timeoutId = setTimeout(() => {
+                    reject(new Error("Reply timeout after 5s"));
+                }, 5000);
+
+                this.room?.onMessage("replyStoryResponse", (data) => {
+                    clearTimeout(timeoutId);
+                    console.log("Received reply response:", data);
+                    resolve(data);
+                });
+            });
+
+            if (response.success) {
+                // Refresh replies after successful reply
+                await this.getRepliesForStory(storyId);
+                return true;
+            } else {
+                console.error("Reply failed:", response.reason);
+                return false;
+            }
         } catch (error) {
-            console.error("❌ 回复故事失败:", error);
+            console.error("❌ Reply error:", error);
             return false;
         }
     }
@@ -181,6 +234,61 @@ class ColyseusClient {
             console.log(`❌ 断开 Colyseus 连接: ${this.room.id}`);
             this.room.leave();
             this.room = null;
+        }
+    }
+
+    public async getRepliesForStory(storyId: number): Promise<{ [key: string]: Reply[] }> {
+        if (!this.room) {
+            console.error("⚠️ 尚未加入房间，无法获取回复");
+            return {};
+        }
+
+        try {
+            this.sendMessage("getRepliesByStoryId", {
+                storyId: storyId.toString()
+            });
+            console.log("💬 正在获取故事回复...");
+
+            const response = await new Promise<{ success: boolean; replies: { [key: string]: Reply[] }; reason?: string }>((resolve) => {
+                this.onMessage("getRepliesResponse", (data) => {
+                    resolve(data);
+                    console.log("💬 收到回复列表:", data);
+                });
+            });
+
+            if (response.success && response.replies) {
+                return response.replies;
+            }
+            return {};
+        } catch (error) {
+            console.error("❌ 获取回复失败:", error);
+            return {};
+        }
+    }
+
+    public async sendWhiskey(storyId: number): Promise<boolean> {
+        if (!this.room) {
+            console.error("⚠️ 尚未加入房间，无法发送Whiskey");
+            return false;
+        }
+
+        try {
+            this.sendMessage("sendWhiskey", { 
+                storyId: storyId.toString()
+            });
+            console.log("🥃 正在发送Whiskey...");
+
+            const response = await new Promise<{ success: boolean; reason?: string }>((resolve) => {
+                this.onMessage("whiskeySent", (data) => {
+                    resolve(data);
+                    console.log("🥃 发送Whiskey结果:", data);
+                });
+            });
+
+            return response.success;
+        } catch (error) {
+            console.error("❌ 发送Whiskey失败:", error);
+            return false;
         }
     }
 }

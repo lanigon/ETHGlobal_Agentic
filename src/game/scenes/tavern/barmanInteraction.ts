@@ -4,6 +4,8 @@ import Player from '../../heroes/player';
 import Barman from '../../heroes/barman';
 import Dialog from '../../menu/dialog';
 import { ChatWindow } from '../../menu/chatWindow';
+import AIChatClient from '../../utils/AIChatClient';
+import { EventBus } from '../../EventBus';
 
 export class BarmanInteraction {
   private scene: Phaser.Scene;
@@ -20,6 +22,12 @@ export class BarmanInteraction {
     this.barman = barman;
     this.gridSize = gridSize;
     this.chatWindow = new ChatWindow((message) => this.handleBarmanResponse(message));
+
+    // Add streaming response handler
+    EventBus.on("chat-stream", (data: { chunk: string; isComplete: boolean }) => {
+      console.log("📨 Received stream chunk:", data);
+      this.chatWindow.appendStreamingMessage(data.chunk, data.isComplete);
+    });
   }
 
   public handleBarmanInteraction() {
@@ -57,15 +65,19 @@ export class BarmanInteraction {
   private startChat() {
     this.endDialog();
     this.chatWindow.show();
-    this.chatWindow.addMessage('Welcome! How can I help you today?', 'barman');
+    // Initial greeting message in English
+    this.chatWindow.addMessage("Welcome to Web3 Tavern! I'm the bartender here, how can I help you today?", 'barman');
   }
 
   private handleBarmanResponse(userMessage: string) {
+    console.log("💬 User message:", userMessage);
+    // Show user message immediately without animation
     this.chatWindow.addMessage(userMessage, 'user');
-    const response = `Thanks for your message: "${userMessage}". How else can I help?`;
-    setTimeout(() => {
-      this.chatWindow.addMessage(response, 'barman');
-    }, 1000);
+    
+    // Use AIChatClient for AI response
+    AIChatClient.sendMessage(userMessage).catch(error => {
+        console.error("Failed to get AI response:", error);
+    });
   }
 
   private endDialog() {
@@ -78,6 +90,8 @@ export class BarmanInteraction {
   public destroy() {
     this.chatWindow.destroy();
     this.dialog?.destroy();
+    // Remove event listener
+    EventBus.removeListener("chat-stream");
   }
 
   public isContained(x: number, y: number): boolean {

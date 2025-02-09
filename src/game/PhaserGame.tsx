@@ -60,7 +60,11 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <div id="game-container" style={{ width: '100%', height: '100%' }}></div>
-            <ReactPhaserBridge />
+            <SuiClientProvider>
+                <WalletProvider autoConnect>
+                    <ReactPhaserBridge />
+                </WalletProvider>
+            </SuiClientProvider>
             <Mail />
             {/* <HtmlOverlay /> */}
         </div >

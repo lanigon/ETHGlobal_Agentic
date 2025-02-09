@@ -7,6 +7,7 @@ export class ChatWindow {
 
   private handleKeydown: (e: KeyboardEvent) => void;
   private handleChatSubmit: (e: KeyboardEvent) => void;
+  private handleSpaceKey: (e: KeyboardEvent) => void;
 
   constructor(private onMessageSubmit: (message: string) => void) {
     this.createElements();
@@ -138,6 +139,7 @@ export class ChatWindow {
     this.handleChatSubmit = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && this.chatInput?.value.trim()) {
         const message = this.chatInput.value.trim();
+        console.log("📤 Submitting message:", message);
         this.onMessageSubmit(message);
         this.chatInput.value = '';
       }
@@ -145,6 +147,24 @@ export class ChatWindow {
 
     this.chatInput.addEventListener('keypress', this.handleChatSubmit);
     document.addEventListener('keydown', this.handleKeydown);
+
+    this.handleSpaceKey = (event: KeyboardEvent) => {
+      if (event.key === ' ') {
+        event.preventDefault();
+        const input = event.target as HTMLTextAreaElement;
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const value = input.value;
+        const newValue = value.substring(0, start) + ' ' + value.substring(end);
+        
+        input.value = newValue;
+        setTimeout(() => {
+          input.selectionStart = input.selectionEnd = start + 1;
+        }, 0);
+      }
+    };
+
+    this.chatInput.addEventListener('keydown', this.handleSpaceKey);
   }
 
   public show() {
@@ -162,44 +182,76 @@ export class ChatWindow {
     }
   }
 
-  public addMessage(text: string, sender: 'user' | 'barman') {
+  public async addMessage(text: string, sender: 'user' | 'barman') {
     if (!this.chatHistory) return;
 
     const messageDiv = document.createElement('div');
     Object.assign(messageDiv.style, {
-      marginBottom: '8px',
-      padding: '12px',
-      maxWidth: '80%',
-      wordWrap: 'break-word',
-      fontSize: '14px',
-      fontFamily: 'PixelFont, monospace',
-      ...(sender === 'user' 
-        ? {
-            marginLeft: 'auto',
-            backgroundColor: '#2A4C54',
-            color: '#4EEAFF',
-            border: '2px solid #4EEAFF'
-          }
-        : {
-            backgroundColor: '#1E1B2D',
-            color: '#4EEAFF',
-            border: '2px solid #4EEAFF'
-          }),
-      clipPath: `polygon(
-        0 4px,
-        4px 4px,
-        4px 0,
-        calc(100% - 4px) 0,
-        calc(100% - 4px) 4px,
-        100% 4px,
-        100% calc(100% - 4px),
-        calc(100% - 4px) calc(100% - 4px),
-        calc(100% - 4px) 100%,
-        4px 100%,
-        4px calc(100% - 4px),
-        0 calc(100% - 4px)
-      )`
+        marginBottom: '8px',
+        padding: '12px',
+        maxWidth: '80%',
+        wordWrap: 'break-word',
+        fontSize: '14px',
+        fontFamily: 'PixelFont, monospace',
+        ...(sender === 'user' 
+            ? {
+                marginLeft: 'auto',
+                backgroundColor: '#2A4C54',
+                color: '#4EEAFF',
+                border: '1px solid rgba(78, 234, 255, 0.3)'
+            }
+            : {
+                backgroundColor: '#1E1B2D',
+                color: '#4EEAFF',
+            })
     });
+
+    this.chatHistory.appendChild(messageDiv);
+
+    // Animate text character by character
+    let currentText = '';
+    for (let i = 0; i < text.length; i++) {
+        currentText += text[i];
+        messageDiv.textContent = currentText;
+        await new Promise(resolve => setTimeout(resolve, 30)); // Adjust speed here
+        this.chatHistory.scrollTop = this.chatHistory.scrollHeight;
+    }
+  }
+
+  public async appendStreamingMessage(text: string, isComplete = false) {
+    if (!this.chatHistory) return;
+
+    let streamingMessage = this.chatHistory.querySelector('.streaming-message') as HTMLDivElement;
+    if (!streamingMessage) {
+        streamingMessage = document.createElement('div');
+        streamingMessage.className = 'streaming-message message';
+        Object.assign(streamingMessage.style, {
+            marginBottom: '8px',
+            padding: '12px',
+            width: '80%',
+            wordWrap: 'break-word',
+            fontSize: '14px',
+            fontFamily: 'PixelFont, monospace',
+            backgroundColor: '#1E1B2D',
+            color: '#4EEAFF'
+        });
+        this.chatHistory.appendChild(streamingMessage);
+    }
+
+    // Simply append the new text
+    streamingMessage.textContent = (streamingMessage.textContent || '') + text;
+    this.chatHistory.scrollTop = this.chatHistory.scrollHeight;
+
+    if (isComplete) {
+        streamingMessage.classList.remove('streaming-message');
+    }
+  }
+
+  private createMessage(text: string, isAI = false) {
+    if (!this.chatHistory) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isAI ? 'ai-message' : 'user-message'}`;
     messageDiv.textContent = text;
     this.chatHistory.appendChild(messageDiv);
     this.chatHistory.scrollTop = this.chatHistory.scrollHeight;
