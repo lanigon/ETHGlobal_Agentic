@@ -56,6 +56,8 @@ The agent will:
 
 And, these functions are simply sending requests to `node runtime` expressa service. In this way, we solve the problem of the language gap.
 
+> We are considering introduce **Chain of Thinking** into our agentic program, to make the agent more intelligent and engaging.
+
 ## Node Runtime
 
 The Node runtime is rather simple. It is responsible for handling transactions and interacting with the smart contracts. It has the following api endpoints:
