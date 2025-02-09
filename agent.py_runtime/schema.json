@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "_id": {
+                "type": "string",
+                "format": "uuid",
+                "coerce": true
+            },
+            "user_id": {
+                "type": "string"
+            },
+            "title": {
+                "type": "string"
+            },
+            "bottle_content": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "_id",
+            "user_id",
+            "title",
+            "bottle_content"
+        ],
+        "additionalProperties": false
+    }
+}

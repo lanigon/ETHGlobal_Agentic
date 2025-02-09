@@ -15,3 +15,5 @@ agent.py_runtime/agent_venv/
 trash/
 
 agent.node_runtime/src/nillion_vault/nillionOrgConfig.ts
+agent.py_runtime/nillion_utils/.streamlit/secrets.toml
+agent.py_runtime/.streamlit/secrets.toml
