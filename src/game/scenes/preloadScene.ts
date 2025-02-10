@@ -131,29 +131,14 @@ export class preloadScene extends Scene {
 
     preload() {
         // 加载loading动画资源
-        this.load.spritesheet("loader", "img/loader.png", {
-            frameWidth: 64,
-            frameHeight: 64,
-        });
-
-        // 创建旋转动画
-        this.anims.create({
-            key: "loader-rotate",
-            frames: this.anims.generateFrameNumbers("loader"),
-            frameRate: 12,
-            repeat: -1,
-        });
-
         // 资源加载
         // this.load.image('tavern_bg', 'img/newbar.png');
         this.load.image("tavern_bg", "img/backgroundHorizontal.jpg");
-        this.load.image("back", "img/back.png");
-        this.load.image("driftbottle", "img/driftbottle.png");
-        this.load.image("driftbottle_bg", "img/driftbottle_bg.png");
         this.load.spritesheet("player", "animation/move.png", {
             frameWidth: 280,
             frameHeight: 550,
         });
+        this.load.image("driftbottle", "img/driftbottle.png");
         this.load.image("user", "animation/david.png");
         this.load.image("barwoman", "animation/lucy.png");
         this.load.audio("theme", [
