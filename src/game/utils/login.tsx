@@ -18,7 +18,6 @@ type TestResponse = {
 };
 
 export function ReactPhaserBridge() {
-  const { data: userData, mutate: refreshUserData } = useGet<TestResponse>("/api/test?userId=1");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ethAddress, setEthAddress] = useState<string | null>(null);
 
