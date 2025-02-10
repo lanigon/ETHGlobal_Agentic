@@ -6,7 +6,7 @@ class AIChatClient {
     // Use proxy URL in development
     private API_URL = process.env.NODE_ENV === 'development'
         ? '/api/chat'  // This will be proxied
-        : "http://43.134.74.254:8080/api/chat";
+        : "https://www.emptylab.org/api/chat";
 
     private constructor() { }
 
