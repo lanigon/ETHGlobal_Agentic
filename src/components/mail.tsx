@@ -68,8 +68,8 @@ const MOCK_REPLIES: Reply[] = [
 
 // Add ReplyGroup interface
 interface ReplyGroup {
-    address: string;
-    replies: Reply[];
+  address: string;
+  replies: Reply[];
 }
 
 export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
@@ -88,10 +88,10 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [recipient, setRecipient] = useState<string>("");
 
   const [approveAmount, setApproveAmount] = useState(0)
-  const {address} = useAccount()
-  const {writeContract} = useWriteContract()
+  const { address } = useAccount()
+  const { writeContract } = useWriteContract()
 
-  const {data: coinBalance, refetch} = useReadContract({
+  const { data: coinBalance, refetch } = useReadContract({
     address: payAddress,
     abi: payAbi,
     functionName: "balanceOf",
@@ -103,32 +103,31 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
   const sendCoin = async () => {
     if (!approveAmount || isSending) return;
-    console.log(approveAmount)
-    console.log("reci::"+recipient)
+
     setIsSending(true);
     try {
-        // 先批准代币
-        writeContract({
-            address: payAddress,
-            abi: payAbi,
-            functionName: "approve",
-            args: [transferAddress, approveAmount*10**18]
-        });
-        
-        // 发送代币
-        const id = writeContract({
-            address: transferAddress,
-            abi: transferAbi,
-            functionName: "deposit",
-            args: [recipient, approveAmount*10**18]
-        });
-        
-        console.log(id);
-        setApproveAmount(0); // 清空输入框
+      // 先批准代币
+      await writeContract({
+        address: payAddress,
+        abi: payAbi,
+        functionName: "approve",
+        args: [transferAddress, approveAmount]
+      });
+
+      // 发送代币
+      await writeContract({
+        address: transferAddress,
+        abi: transferAbi,
+        functionName: "deposit",
+        args: [recipient, approveAmount]
+      });
+
+      console.log("Coin sent successfully");
+      setApproveAmount(0); // 清空输入框
     } catch (error) {
-        console.error("Failed to send coin:", error);
+      console.error("Failed to send coin:", error);
     } finally {
-        setIsSending(false);
+      setIsSending(false);
     }
   }
 
@@ -136,18 +135,18 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
     if (!address) return;
     setClaimStatus("Claiming...");
     try {
-        writeContract({
-            address: transferAddress,
-            abi: transferAbi,
-            functionName: "withdraw",
-            args: [id]
-        });
-        setClaimStatus("Claim successful!");
-        setTimeout(() => setClaimStatus(""), 3000);
+      await writeContract({
+        address: transferAddress,
+        abi: transferAbi,
+        functionName: "withdraw",
+        args: [id]
+      });
+      setClaimStatus("Claim successful!");
+      setTimeout(() => setClaimStatus(""), 3000);
     } catch (error) {
-        setClaimStatus("Claim failed");
-        console.error(error);
-        setTimeout(() => setClaimStatus(""), 3000);
+      setClaimStatus("Claim failed");
+      console.error(error);
+      setTimeout(() => setClaimStatus(""), 3000);
     }
   }
 
@@ -155,12 +154,12 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const fetchStories = async (isMyStoriesView: boolean) => {
     setLoading(true);
     try {
-      const fetchedStories = isMyStoriesView 
+      const fetchedStories = isMyStoriesView
         ? await ColyseusClient.getMyStories()
         : await ColyseusClient.getAllStories();
-      
+
       console.log(`Fetched ${isMyStoriesView ? 'my' : 'all'} stories:`, fetchedStories);
-      
+
       // Only use mock data if no stories returned
       if (fetchedStories && fetchedStories.length > 0) {
         setStories(fetchedStories);
@@ -187,7 +186,7 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const filteredStories = React.useMemo(() => {
     if (!searchQuery) return stories;
     const query = searchQuery.toLowerCase();
-    return stories.filter((story) => 
+    return stories.filter((story) =>
       story.title.toLowerCase().includes(query) ||
       story.story_content.toLowerCase().includes(query) ||
       story.author_address.toLowerCase().includes(query)
@@ -211,33 +210,32 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
   const handleSendReply = async () => {
     if (!selectedStory || !replyText.trim()) return;
-    await sendCoin()
     try {
-        const success = await ColyseusClient.replyToStory(selectedStory.id, replyText);
-        if (success) {
-            setReplyText('');
-            console.log('Reply sent successfully');
-            
-            // 更新回复列表
-            const newReplies = await ColyseusClient.getRepliesForStory(selectedStory.id);
-            if (isMyStories) {
-                setReplyGroups(newReplies);
-            } else {
-                const allReplies = Object.values(newReplies).flat();
-                const sortedReplies = allReplies.sort((a, b) => 
-                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                );
-                setReplies(sortedReplies);
-            }
+      const success = await ColyseusClient.replyToStory(selectedStory.id, replyText);
+      if (success) {
+        setReplyText('');
+        console.log('Reply sent successfully');
+
+        // 更新回复列表
+        const newReplies = await ColyseusClient.getRepliesForStory(selectedStory.id);
+        if (isMyStories) {
+          setReplyGroups(newReplies);
+        } else {
+          const allReplies = Object.values(newReplies).flat();
+          const sortedReplies = allReplies.sort((a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+          setReplies(sortedReplies);
         }
+      }
     } catch (error) {
-        console.error('Failed to send reply:', error);
+      console.error('Failed to send reply:', error);
     }
   };
 
   const handleCreateStory = async () => {
     if (!newStoryTitle.trim() || !newStoryContent.trim()) return;
-    
+
     try {
       const success = await ColyseusClient.createStory(newStoryTitle, newStoryContent);
       if (success) {
@@ -257,26 +255,26 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
     console.log("Selected story:", story);
     setSelectedStory(story);
     setRecipient(story.author_address);
-    
+
     try {
-        const replyData = await ColyseusClient.getRepliesForStory(story.id);
-        console.log("Fetched replies:", replyData);
-        
-        if (isMyStories) {
-            setReplyGroups(replyData);
-            setReplies([]);
-        } else {
-            const allReplies = Object.values(replyData).flat();
-            const sortedReplies = allReplies.sort((a, b) => 
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            );
-            setReplies(sortedReplies);
-            setReplyGroups({});
-        }
-    } catch (error) {
-        console.error("Failed to fetch replies:", error);
+      const replyData = await ColyseusClient.getRepliesForStory(story.id);
+      console.log("Fetched replies:", replyData);
+
+      if (isMyStories) {
+        setReplyGroups(replyData);
         setReplies([]);
+      } else {
+        const allReplies = Object.values(replyData).flat();
+        const sortedReplies = allReplies.sort((a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+        setReplies(sortedReplies);
         setReplyGroups({});
+      }
+    } catch (error) {
+      console.error("Failed to fetch replies:", error);
+      setReplies([]);
+      setReplyGroups({});
     }
   };
 
@@ -288,16 +286,16 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
       const end = target.selectionEnd;
       const value = target.value;
       const newValue = value.substring(0, start) + ' ' + value.substring(end);
-      
+
       // For reply text
       if (target.placeholder.includes('reply')) {
         setReplyText(newValue);
-      } 
+      }
       // For new story
       else if (target.placeholder.includes('story')) {
         setNewStoryContent(newValue);
       }
-      
+
       // Set cursor position after the space
       setTimeout(() => {
         target.selectionStart = target.selectionEnd = start + 1;
@@ -307,7 +305,7 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
   const handleSendWhiskey = async () => {
     if (!selectedStory) return;
-    
+
     try {
       const success = await ColyseusClient.sendWhiskey(selectedStory.id);
       if (success) {
@@ -349,8 +347,8 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                 }}
                 className={cn(
                   "px-4 py-2 border-b-2 border-r-2 transition-colors text-[#4EEAFF]",
-                  isMyStories 
-                    ? "bg-[#9D5BDE] border-[#1E1B2D]" 
+                  isMyStories
+                    ? "bg-[#9D5BDE] border-[#1E1B2D]"
                     : "bg-[#3A3A3F] border-[#1A1A1F] hover:bg-[#5A5A5F]"
                 )}
               >
@@ -393,8 +391,8 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                     className={cn(
                       "cursor-pointer space-y-2 p-3 border-2",
                       "transition-colors pixel-corners",
-                      selectedStory?.id === story.id 
-                        ? "bg-[#3A3A3F] border-[#4EEAFF]" 
+                      selectedStory?.id === story.id
+                        ? "bg-[#3A3A3F] border-[#4EEAFF]"
                         : "bg-[#2A2A2F] border-[#4A4A4F] hover:border-[#4EEAFF]/50"
                     )}
                     onClick={() => handleStorySelect(story)}
@@ -493,19 +491,51 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
                               {/* Add Action Buttons */}
                               <div className="flex justify-end gap-2 mt-4">
                                 {/* 代币操作区域 */}
+                                <div className="flex items-center gap-2 mr-4">
+                                  <input
+                                    type="number"
+                                    value={approveAmount}
+                                    onChange={(e) => setApproveAmount(Number(e.target.value))}
+                                    className="w-24 bg-[#2A2A2F] border-2 border-[#4A4A4F] px-2 py-1
+                                                text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
+                                                focus:outline-none focus:border-[#4EEAFF]/50"
+                                    placeholder="Amount"
+                                    min="0"
+                                  />
+                                  <button
+                                    onClick={sendCoin}
+                                    disabled={isSending || !approveAmount}
+                                    className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
+                                                text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
+                                                font-pixel text-sm pixel-corners flex items-center gap-1"
+                                  >
+                                    {isSending ? "Sending..." : "Send"}
+                                  </button>
+                                </div>
 
                                 {/* 简化后的 Claim 按钮 */}
-                                
+                                <button
+                                  onClick={() => claimCoin(0)} // 根据实际合约调整参数
+                                  className="px-3 py-1 bg-[#FFD700] border-2 border-[#B8860B] 
+                                            text-[#8B4513] hover:bg-[#FFC125] transition-colors
+                                            font-pixel text-sm pixel-corners flex items-center gap-1"
+                                >
+                                  <div className="w-4 h-4 relative">
+                                    <div className="absolute inset-0 rounded-full bg-[#FFD700] border-2 border-[#B8860B]" />
+                                    <div className="absolute inset-[25%] text-[8px] font-bold text-[#B8860B]">$</div>
+                                  </div>
+                                  Claim
+                                </button>
 
                                 {/* 原有的 Like 按钮保持不变 */}
                                 <button
-                                    onClick={handleSendWhiskey}
-                                    className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
+                                  onClick={handleSendWhiskey}
+                                  className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF] 
                                             text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
                                             font-pixel text-sm pixel-corners flex items-center gap-1"
                                 >
-                                    <span className="text-lg">🥃</span>
-                                    Like
+                                  <span className="text-lg">🥃</span>
+                                  Like
                                 </button>
                               </div>
                             </div>
@@ -516,172 +546,148 @@ export function Mail({ className }: React.HTMLAttributes<HTMLDivElement>) {
 
                     {/* Conversation Thread */}
                     {isMyStories ? (
-                        <div className="space-y-4">
-                            {Object.entries(replyGroups).map(([addressPair, replies]) => (
-                                <div key={addressPair} className="bg-[#1E1B2D] border-4 border-[#4EEAFF] pixel-corners">
-                                    <Accordion type="single" collapsible>
-                                        <AccordionItem value="item-1" className="border-0">
-                                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                                                <div className="flex items-center justify-between w-full">
-                                                    <h3 className="font-semibold text-[#4EEAFF]">
-                                                        Conversation with: {addressPair.split('-')[1].slice(0, 6)}...{addressPair.split('-')[1].slice(-4)}
-                                                    </h3>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <div className="px-6 pb-4 space-y-4">
-                                                    {replies.map((reply) => (
-                                                        <div key={reply.id} className="bg-[#2A2A2F] p-4 rounded">
-                                                            <div className="text-sm text-[#4EEAFF]/70">
-                                                                {new Date(reply.created_at).toLocaleString()}
-                                                            </div>
-                                                            <div className="mt-2 text-[#4EEAFF]/90 whitespace-pre-wrap">
-                                                                {reply.reply_content}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    {/* Reply input for this conversation */}
-                                                    <div className="mt-4">
-                                                        <textarea 
-                                                            value={replyText}
-                                                            onChange={(e) => setReplyText(e.target.value)}
-                                                            placeholder="Reply to this conversation..."
-                                                            className="w-full bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3
+                      <div className="space-y-4">
+                        {Object.entries(replyGroups).map(([addressPair, replies]) => (
+                          <div key={addressPair} className="bg-[#1E1B2D] border-4 border-[#4EEAFF] pixel-corners">
+                            <Accordion type="single" collapsible>
+                              <AccordionItem value="item-1" className="border-0">
+                                <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                                  <div className="flex items-center justify-between w-full">
+                                    <h3 className="font-semibold text-[#4EEAFF]">
+                                      Conversation with: {addressPair.split('-')[1].slice(0, 6)}...{addressPair.split('-')[1].slice(-4)}
+                                    </h3>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="px-6 pb-4 space-y-4">
+                                    {replies.map((reply) => (
+                                      <div key={reply.id} className="bg-[#2A2A2F] p-4 rounded">
+                                        <div className="text-sm text-[#4EEAFF]/70">
+                                          {new Date(reply.created_at).toLocaleString()}
+                                        </div>
+                                        <div className="mt-2 text-[#4EEAFF]/90 whitespace-pre-wrap">
+                                          {reply.reply_content}
+                                        </div>
+                                      </div>
+                                    ))}
+                                    {/* Reply input for this conversation */}
+                                    <div className="mt-4">
+                                      <textarea
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder="Reply to this conversation..."
+                                        className="w-full bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3
                                                                      text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
                                                                      focus:outline-none focus:border-[#4EEAFF]/50 resize-none"
-                                                        />
-                                                        <div className="flex justify-end mt-2">
-                                                            <button
-                                                                onClick={handleSendReply}
-                                                                className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF]
+                                      />
+                                      <div className="flex justify-end mt-2">
+                                        <button
+                                          onClick={handleSendReply}
+                                          className="px-3 py-1 bg-[#722F37] border-2 border-[#4EEAFF]
                                                                          text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
                                                                          font-pixel text-sm pixel-corners"
-                                                            >
-                                                                Reply
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    </Accordion>
-                                </div>
-                            ))}
-                        </div>
+                                        >
+                                          Reply
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                        <div className="space-y-4">
-                            {replies.map((reply) => (
-                                <div key={reply.id} className="bg-[#1E1B2D] border-4 border-[#4EEAFF] pixel-corners">
-                                    <Accordion type="single" collapsible>
-                                        <AccordionItem value="item-1" className="border-0">
-                                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                                                <div className="flex items-center justify-between w-full">
-                                                    <h3 className="font-semibold text-[#4EEAFF]">
-                                                        {reply.author_address === selectedStory.author_address ? "Author's Reply" : "Reply"}
-                                                    </h3>
-                                                    <span className="text-sm text-[#4EEAFF]/50">
-                                                        {new Date(reply.created_at).toLocaleString()}
-                                                    </span>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <div className="px-6 pb-4">
-                                                    <div className="text-sm text-[#4EEAFF]/70">
-                                                        From: {reply.author_address.slice(0, 6)}...{reply.author_address.slice(-4)}
-                                                    </div>
-                                                    <div className="mt-4 text-[#4EEAFF]/90 whitespace-pre-wrap">
-                                                        {reply.reply_content}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                  onClick={() => claimCoin(0)} // 根据实际合约调整参数
-                                                  className="px-3 py-1 bg-[#FFD700] border-2 border-[#B8860B] 
-                                                          text-[#8B4513] hover:bg-[#FFC125] transition-colors
-                                                          font-pixel text-sm pixel-corners flex items-center gap-1 ml-6"
-                                              >
-                                                  <div className="w-4 h-4 relative">
-                                                      <div className="absolute inset-0 rounded-full bg-[#FFD700] border-2 border-[#B8860B]" />
-                                                      <div className="absolute inset-[25%] text-[8px] font-bold text-[#B8860B]">$</div>
-                                                  </div>
-                                                  Claim
-                                              </button>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    </Accordion>
-                                </div>
-                            ))}
-                        </div>
+                      <div className="space-y-4">
+                        {replies.map((reply) => (
+                          <div key={reply.id} className="bg-[#1E1B2D] border-4 border-[#4EEAFF] pixel-corners">
+                            <Accordion type="single" collapsible>
+                              <AccordionItem value="item-1" className="border-0">
+                                <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                                  <div className="flex items-center justify-between w-full">
+                                    <h3 className="font-semibold text-[#4EEAFF]">
+                                      {reply.author_address === selectedStory.author_address ? "Author's Reply" : "Reply"}
+                                    </h3>
+                                    <span className="text-sm text-[#4EEAFF]/50">
+                                      {new Date(reply.created_at).toLocaleString()}
+                                    </span>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="px-6 pb-4">
+                                    <div className="text-sm text-[#4EEAFF]/70">
+                                      From: {reply.author_address.slice(0, 6)}...{reply.author_address.slice(-4)}
+                                    </div>
+                                    <div className="mt-4 text-[#4EEAFF]/90 whitespace-pre-wrap">
+                                      {reply.reply_content}
+                                    </div>
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </div>
+                        ))}
+                      </div>
                     )}
 
                     {/* Reply Box - Only show for Bar Stories */}
                     {!isMyStories && (
-                        <div className="bg-[#1E1B2D] border-4 border-[#4EEAFF] pixel-corners">
-                            <Accordion type="single" collapsible defaultValue="reply">
-                                <AccordionItem value="reply" className="border-0">
-                                    <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                                        <div className="flex items-center justify-between w-full">
-                                            <h3 className="font-semibold text-[#4EEAFF]">Write Reply</h3>
-                                            <span className="text-sm text-[#4EEAFF]/50">
-                                                {new Date().toLocaleString()}
-                                            </span>
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="px-6 pb-4">
-                                            <textarea 
-                                                value={replyText}
-                                                onChange={(e) => setReplyText(e.target.value)}
-                                                onKeyDown={handleKeyDown}
-                                                placeholder="Write your reply here..."
-                                                className="w-full bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3 h-[50vh] 
+                      <div className="bg-[#1E1B2D] border-4 border-[#4EEAFF] pixel-corners">
+                        <Accordion type="single" collapsible defaultValue="reply">
+                          <AccordionItem value="reply" className="border-0">
+                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                              <div className="flex items-center justify-between w-full">
+                                <h3 className="font-semibold text-[#4EEAFF]">Write Reply</h3>
+                                <span className="text-sm text-[#4EEAFF]/50">
+                                  {new Date().toLocaleString()}
+                                </span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="px-6 pb-4">
+                                <textarea
+                                  value={replyText}
+                                  onChange={(e) => setReplyText(e.target.value)}
+                                  onKeyDown={handleKeyDown}
+                                  placeholder="Write your reply here..."
+                                  className="w-full bg-[#2A2A2F] border-2 border-[#4A4A4F] p-3 h-[50vh] 
                                                         text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
                                                         focus:outline-none focus:border-[#4EEAFF]/50 resize-none mt-4"
-                                            />
-                                            <div className="flex justify-end mt-4">
-                                              <div className="flex items-center gap-2 mr-4">
-                                                  <input
-                                                      type="number"
-                                                      value={approveAmount}
-                                                      onChange={(e) => setApproveAmount(Number(e.target.value))}
-                                                      className="w-24 bg-[#2A2A2F] border-2 border-[#4A4A4F] px-2 py-1
-                                                              text-[#4EEAFF] placeholder:text-[#4EEAFF]/50 
-                                                              focus:outline-none focus:border-[#4EEAFF]/50"
-                                                      placeholder="Amount"
-                                                      min="0"
-                                                  />
-                                              </div>
-                                                <button
-                                                    onClick={() => handleSendReply()}
-                                                    disabled={!replyText.trim()}
-                                                    className="px-4 py-2 bg-[#2A2A2F] border-2 border-[#4EEAFF]
+                                />
+                                <div className="flex justify-end mt-4">
+                                  <button
+                                    onClick={() => handleSendReply()}
+                                    disabled={!replyText.trim()}
+                                    className="px-4 py-2 bg-[#2A2A2F] border-2 border-[#4EEAFF]
                                                             text-[#4EEAFF] hover:bg-[#9D5BDE] transition-colors
                                                             disabled:opacity-50 disabled:cursor-not-allowed
                                                             font-pixel text-sm pixel-corners"
-                                                >
-                                                    Send Reply
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                        </div>
+                                  >
+                                    Send Reply
+                                  </button>
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </div>
                     )}
 
                     {/* 在 UI 中显示接收者信息 */}
                     {selectedStory && (
-                        <div className="mb-4">
-                            <h3 className="text-lg font-semibold text-[#4EEAFF]">
-                                To: {recipient.slice(0, 6)}...{recipient.slice(-4)}
-                            </h3>
-                        </div>
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-[#4EEAFF]">
+                          To: {recipient.slice(0, 6)}...{recipient.slice(-4)}
+                        </h3>
+                      </div>
                     )}
 
                     {/* 在 UI 中添加状态提示 */}
                     {claimStatus && (
-                        <div className="text-sm text-[#4EEAFF]">
-                            {claimStatus}
-                        </div>
+                      <div className="text-sm text-[#4EEAFF]">
+                        {claimStatus}
+                      </div>
                     )}
                   </div>
                 </div>
